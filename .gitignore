@@ -1,3 +1,13 @@
+# Manually added
+equilibria/*
+test_vmec_to_gs2_geometry_interface
+Literature
+data/*
+paperGrids/*
+gs2grids/*
+GS2/*/
+GS2/gs2
+
 # Prerequisites
 *.d
 

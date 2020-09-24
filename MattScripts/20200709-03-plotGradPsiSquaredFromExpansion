@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+import numpy as np
+from scipy.io import netcdf
+import os
+
+#filename = '/Users/mattland/Box Sync/work19/20190222_01_runQuasisymmetryForOptimizedConfigurations/quasisymmetry_out.ESTELL.nc'
+filename = '/Users/mattland/Box Sync/work20/20200709-02_runQuasisymmetryForOptimizedConfigurations/quasisymmetry_out.ESTELL.nc'
+
+f = netcdf.netcdf_file(filename,'r',mmap=False)
+X1c = f.variables['X1c'][()]
+Y1c = f.variables['Y1c'][()]
+Y1s = f.variables['Y1s'][()]
+phi = f.variables['phi'][()]
+varphi = f.variables['Boozer_toroidal_angle'][()]
+nfp = f.variables['nfp'][()]
+B0 = f.variables['B0'][()]
+axis_helicity = f.variables['axis_helicity'][()]
+f.close
+
+V1 = X1c * X1c + Y1c * Y1c + Y1s * Y1s
+a = (-X1c * X1c + Y1s * Y1s - Y1c * Y1c) / V1
+b = -2 * Y1s * Y1c / V1
+
+Ntheta = 150
+theta = np.linspace(0, 2 * np.pi, Ntheta)
+varphi2D, theta2D = np.meshgrid(varphi, theta)
+vartheta2D = theta2D + axis_helicity * nfp * varphi2D
+
+print("V1.shape:", V1.shape)
+print("varphi2D.shape:", varphi2D.shape)
+
+# Convert 1D arrays to 2D arrays
+#V1 = np.kron(np.ones(Ntheta,1), V1)
+V1 = np.ones((Ntheta, 1)) * V1.transpose()
+a = np.ones((Ntheta, 1)) * a.transpose()
+b = np.ones((Ntheta, 1)) * b.transpose()
+
+G = B0 * V1 * (1 + a * np.cos(2 * vartheta2D) + b * np.sin(2 * vartheta2D))
+
+print("varphi2D:")
+print(varphi2D)
+
+print("V1:")
+print(V1)
+
+#G = B0 * V1
+
+import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(6,4.5))
+fig.patch.set_facecolor("w")
+
+contours = np.linspace(0.5, 6.0, 25)
+#contours = np.linspace(2.5, 3.6, 25)
+plt.contourf(varphi2D, theta2D, G, contours)
+plt.colorbar()
+plt.xlabel(r'Boozer toroidal angle $\varphi$')
+plt.ylabel(r'Boozer poloidal angle $\theta$')
+plt.title(r'$G = |\psi|^{-1} |\nabla \psi|^2$')
+
+plt.figtext(0.5, 0.995, filename, ha='center', va='top', fontsize=6)
+plt.figtext(0.5, 0.005, os.path.abspath(__file__), ha='center', va='bottom', fontsize=6)
+
+plt.subplots_adjust(left=0.12, bottom=0.13, right=0.99, top=0.91)
+
+plt.show()

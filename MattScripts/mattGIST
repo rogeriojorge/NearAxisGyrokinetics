@@ -1,0 +1,346 @@
+#!/usr/bin/env python
+
+print "Usage: mattGist <boozmn file> <s0_wish> <nz> <P> <gistFile>"
+print "s0_wish is the normalized toroidal flux of the surface you want."
+print "The closest available surface (half mesh) in the boozmn file will be used."
+print "nz = number of points along the flux tube"
+print "P: the flux tube will run from theta = -P*pi to P*pi."
+print "The original wout .nc file must be in the same directory!"
+print "The <gistFile> argument is optional."
+
+import os
+import numpy as np
+import sys
+from scipy.io import netcdf
+
+if len(sys.argv) < 5 or len(sys.argv)>6:
+    print "error! you must specify 4 or 5 arguments"
+    exit(1)
+
+boozmn_filename = sys.argv[1]
+s0_wish = float(sys.argv[2])
+nz = int(sys.argv[3])
+P = float(sys.argv[4])
+gistPresent=False
+if len(sys.argv)==6:
+    gistPresent=True
+
+if gistPresent:
+    gistFilename = sys.argv[5]
+    f = open(gistFilename,'r')
+    header = f.readline().split()
+    gist_shat = float(header[2])
+
+    gistData = np.loadtxt(f)
+    gist_theta = gistData[:,0]
+    gist_bmag = gistData[:,1]
+    gist_gradpar = gistData[:,2]
+    gist_gds2 = gistData[:,3]
+    gist_gds21 = gistData[:,4]
+    gist_gds22 = gistData[:,5]
+    gist_cvdrift = gistData[:,6]
+    gist_cvdrift0 = gistData[:,7]
+    gist_gbdrift = gistData[:,8]
+    gist_gbdrift0 = gistData[:,9]
+    f.close()
+
+temp = os.path.basename(boozmn_filename)
+wout_filename = os.path.join(os.path.dirname(boozmn_filename),'wout'+temp[6:])
+print 'wout_filename:',wout_filename
+f = netcdf.netcdf_file(wout_filename,'r',mmap=False)
+Aminor_p = f.variables['Aminor_p'][()]
+f.close()
+
+f = netcdf.netcdf_file(boozmn_filename,'r',mmap=False)
+xm = f.variables['ixm_b'][()]
+xn = f.variables['ixn_b'][()]
+bmnc = f.variables['bmnc_b'][()]
+rmnc = f.variables['rmnc_b'][()]
+zmns = f.variables['zmns_b'][()]
+pmns = f.variables['pmns_b'][()]
+jlist = f.variables['jlist'][()]
+ns = f.variables['ns_b'][()]
+iota_half = f.variables['iota_b'][()]
+pres_half = f.variables['pres_b'][()]
+phi = f.variables['phi_b'][()]
+mnmax = len(xm)
+f.close()
+print "mnmax:",mnmax
+
+psi_toroidal_edge = phi[-1]/(2*np.pi)
+print "psi_toroidal_edge:",psi_toroidal_edge
+
+s_full = np.linspace(0,1,ns)
+s_half = s_full - (s_full[1]-s_full[0])*0.5
+
+Bref = np.abs(2*(phi[-1]/(2*np.pi))/(Aminor_p*Aminor_p))
+print "Reference length = Aminor_p =",Aminor_p,"meters"
+print "Reference B field =",Bref,"Tesla"
+
+print "bmnc.shape:",bmnc.shape
+
+# If ns was 5, so ds=0.25, surface 2 in jlist corresponds to s=1/8,
+# and surface 5 in jlist corresponds to s=7/8.
+s_avail = (jlist-1.5)/(ns-1.0)
+print "Surface indices (half mesh) available (jlist):",jlist
+print "Corresponding values of s available:",s_avail
+jpacked = np.argmin(np.abs(s_avail-s0_wish))
+print "Closest available half-mesh surface index:",jlist[jpacked]
+s0 = (jlist[jpacked]-1.5)/(ns-1.0)
+print "Corresponding s:",s0
+
+# We need a surface on the right and left in order to take d/ds derivatives.
+if jpacked==0:
+    print "Error! You cannot use the innermost surface from the boozmn file."
+    exit(1)
+
+if jpacked==len(jlist)-1:
+    print "Error! You cannot use the outermost surface from the boozmn file."
+    exit(1)
+
+#exit(0)
+
+junpacked = jlist[jpacked] # Note that jlist is 1-based, not 0-based like python
+iota = iota_half[junpacked-1]
+print "iota:",iota
+ds = 1.0/(ns-1.0)
+d_iota_d_s = (iota_half[junpacked-1+1] - iota_half[junpacked-1-1]) / (2*ds)
+print "d_iota_d_s:",d_iota_d_s
+
+# shat = (r/q)(dq/dr) where r = a sqrt(s)?
+shat = -2*s0/(iota)*d_iota_d_s
+print "shat:         :",shat
+if gistPresent:
+    print "shat from GIST:",gist_shat
+
+theta = np.linspace(-P*np.pi,P*np.pi,nz)
+alpha0 = 0
+zeta_boozer = (theta - alpha0) / iota
+# We do not need to evaluate the above expression at neighboring values of iota because
+# we are evaluating d(X,Y,Z) / d (s,theta,zeta), so (s,theta,zeta) are fixed, and alpha is not fixed.
+zeta_vmec = np.zeros(nz)
+# From boozer_coords.f line 115, arrays from the boozmn file are all on the half mesh.
+B_T = np.zeros(nz)
+B_T_next = np.zeros(nz)
+B_T_prev = np.zeros(nz)
+dBdtheta_T = np.zeros(nz)
+dBdzeta_boozer_T = np.zeros(nz)
+R = np.zeros(nz)
+R_next = np.zeros(nz)
+R_prev = np.zeros(nz)
+dRdtheta = np.zeros(nz)
+dRdzeta_boozer = np.zeros(nz)
+Z = np.zeros(nz)
+Z_next = np.zeros(nz)
+Z_prev = np.zeros(nz)
+dZdtheta = np.zeros(nz)
+dZdzeta_boozer = np.zeros(nz)
+p = np.zeros(nz)
+p_next = np.zeros(nz)
+p_prev = np.zeros(nz)
+dpdtheta = np.zeros(nz)
+dpdzeta_boozer = np.zeros(nz)
+for imn in range(mnmax):
+    m = xm[imn]
+    n = xn[imn]
+    angle = m*theta - n*zeta_boozer
+    sinangle = np.sin(angle)
+    cosangle = np.cos(angle)
+    B_T += bmnc[jpacked,imn]*cosangle
+    B_T_next += bmnc[jpacked+1,imn]*cosangle
+    B_T_prev += bmnc[jpacked-1,imn]*cosangle
+    dBdtheta_T += -m*bmnc[jpacked,imn]*sinangle
+    dBdzeta_boozer_T += n*bmnc[jpacked,imn]*sinangle
+    R += rmnc[jpacked,imn]*cosangle
+    R_next += rmnc[jpacked+1,imn]*cosangle
+    R_prev += rmnc[jpacked-1,imn]*cosangle
+    dRdtheta += -m*rmnc[jpacked,imn]*sinangle
+    dRdzeta_boozer  +=  n*rmnc[jpacked,imn]*sinangle
+    Z += zmns[jpacked,imn]*sinangle
+    Z_next += zmns[jpacked+1,imn]*sinangle
+    Z_prev += zmns[jpacked-1,imn]*sinangle
+    dZdtheta += m*zmns[jpacked,imn]*cosangle
+    dZdzeta_boozer  += -n*zmns[jpacked,imn]*cosangle
+    p += pmns[jpacked,imn]*sinangle
+    p_next += pmns[jpacked+1,imn]*sinangle
+    p_prev += pmns[jpacked-1,imn]*sinangle
+    dpdtheta += m*pmns[jpacked,imn]*cosangle
+    dpdzeta_boozer  += -n*pmns[jpacked,imn]*cosangle
+
+bmag = B_T / Bref
+
+# From boozer_coords.f line 107, zeta_boozer = zeta_vmec + p.
+# Similarly, from Hirshman's 'Transformation from VMEC to Boozer coordinates.pdf', zeta_boozer = zeta_vmec + p.
+# However, from HSX/m20100409_05_compareFluxSurfacesFromTwoFiles.m or m20161111_01_compareVmecToBoozmn.m, zeta_vmec = zeta_boozer + p!
+sign = 1
+zeta_vmec = zeta_boozer + sign*p
+zeta_vmec_next = zeta_boozer + sign*p_next
+zeta_vmec_prev = zeta_boozer + sign*p_prev
+coszeta_vmec = np.cos(zeta_vmec)
+sinzeta_vmec = np.sin(zeta_vmec)
+coszeta_vmec_next = np.cos(zeta_vmec_next)
+sinzeta_vmec_next = np.sin(zeta_vmec_next)
+coszeta_vmec_prev = np.cos(zeta_vmec_prev)
+sinzeta_vmec_prev = np.sin(zeta_vmec_prev)
+
+X = R*coszeta_vmec
+Y = R*sinzeta_vmec
+dXdtheta = dRdtheta*coszeta_vmec + R*(-sinzeta_vmec)*(sign*dpdtheta)
+dXdzeta_boozer = dRdzeta_boozer*coszeta_vmec + R*(-sinzeta_vmec)*(1+sign*dpdzeta_boozer)
+dYdtheta = dRdtheta*sinzeta_vmec + R*coszeta_vmec*(sign*dpdtheta)
+dYdzeta_boozer = dRdzeta_boozer*sinzeta_vmec + R*coszeta_vmec*(1+sign*dpdzeta_boozer)
+
+delta_s = (jlist[jpacked+1]-jlist[jpacked-1])/(ns-1.0)
+# Note that delta_s is the difference between surfaces that are 2 apart, not surfaces that are 1 apart!
+dXds = (R_next*coszeta_vmec_next - R_prev*coszeta_vmec_prev) / delta_s
+dYds = (R_next*sinzeta_vmec_next - R_prev*sinzeta_vmec_prev) / delta_s
+dZds = (Z_next - Z_prev) / delta_s
+dBds_T = (B_T_next - B_T_prev) / delta_s
+
+Jacobian_with_s = dXds * dYdtheta * dZdzeta_boozer \
+    + dYds * dZdtheta * dXdzeta_boozer \
+    + dZds * dXdtheta * dYdzeta_boozer \
+    - dZds * dYdtheta * dXdzeta_boozer \
+    - dXds * dZdtheta * dYdzeta_boozer \
+    - dYds * dXdtheta * dZdzeta_boozer
+
+Jacobian_with_psi_toroidal = Jacobian_with_s / psi_toroidal_edge
+
+grad_theta_X = (dYdzeta_boozer * dZds - dZdzeta_boozer * dYds) / Jacobian_with_s
+grad_theta_Y = (dZdzeta_boozer * dXds - dXdzeta_boozer * dZds) / Jacobian_with_s
+grad_theta_Z = (dXdzeta_boozer * dYds - dYdzeta_boozer * dXds) / Jacobian_with_s
+
+grad_zeta_boozer_X = (dYds * dZdtheta - dZds * dYdtheta) / Jacobian_with_s
+grad_zeta_boozer_Y = (dZds * dXdtheta - dXds * dZdtheta) / Jacobian_with_s
+grad_zeta_boozer_Z = (dXds * dYdtheta - dYds * dXdtheta) / Jacobian_with_s
+
+grad_s_X = (dYdtheta * dZdzeta_boozer - dZdtheta * dYdzeta_boozer) / Jacobian_with_s
+grad_s_Y = (dZdtheta * dXdzeta_boozer - dXdtheta * dZdzeta_boozer) / Jacobian_with_s
+grad_s_Z = (dXdtheta * dYdzeta_boozer - dYdtheta * dXdzeta_boozer) / Jacobian_with_s
+
+grad_psi_toroidal_X = grad_s_X * psi_toroidal_edge
+grad_psi_toroidal_Y = grad_s_Y * psi_toroidal_edge
+grad_psi_toroidal_Z = grad_s_Z * psi_toroidal_edge
+
+grad_alpha_X = grad_theta_X - iota * grad_zeta_boozer_X - zeta_boozer * d_iota_d_s * grad_s_X
+grad_alpha_Y = grad_theta_Y - iota * grad_zeta_boozer_Y - zeta_boozer * d_iota_d_s * grad_s_Y
+grad_alpha_Z = grad_theta_Z - iota * grad_zeta_boozer_Z - zeta_boozer * d_iota_d_s * grad_s_Z
+
+gds2  = (grad_alpha_X*grad_alpha_X + grad_alpha_Y*grad_alpha_Y + grad_alpha_Z*grad_alpha_Z) * Aminor_p * Aminor_p * s0
+gds21 = (grad_alpha_X*grad_psi_toroidal_X + grad_alpha_Y*grad_psi_toroidal_Y + grad_alpha_Z*grad_psi_toroidal_Z) * shat / Bref
+gds22 = (grad_psi_toroidal_X*grad_psi_toroidal_X + grad_psi_toroidal_Y*grad_psi_toroidal_Y + grad_psi_toroidal_Z*grad_psi_toroidal_Z) * shat * shat / (Bref*Bref*Aminor_p*Aminor_p*s0)
+
+grad_B_T_X = grad_s_X * dBds_T + grad_theta_X * dBdtheta_T + grad_zeta_boozer_X * dBdzeta_boozer_T
+grad_B_T_Y = grad_s_Y * dBds_T + grad_theta_Y * dBdtheta_T + grad_zeta_boozer_Y * dBdzeta_boozer_T
+grad_B_T_Z = grad_s_Z * dBds_T + grad_theta_Z * dBdtheta_T + grad_zeta_boozer_Z * dBdzeta_boozer_T
+
+B_X_T = (dXdzeta_boozer + iota * dXdtheta) / Jacobian_with_psi_toroidal
+B_Y_T = (dYdzeta_boozer + iota * dYdtheta) / Jacobian_with_psi_toroidal
+B_Z_T = (dZdzeta_boozer + iota * dZdtheta) / Jacobian_with_psi_toroidal
+
+# gbdrift is, up to prefactors, \vec{B} \times \nabla |B| \cdot \nabla \alpha.
+factor = -2*Bref*np.sqrt(s0)*Aminor_p*Aminor_p
+B3_T = B_T*B_T*B_T
+gbdrift = ( 0 \
+                + B_X_T * grad_B_T_Y * grad_alpha_Z \
+                + B_Y_T * grad_B_T_Z * grad_alpha_X \
+                + B_Z_T * grad_B_T_X * grad_alpha_Y \
+                - B_Z_T * grad_B_T_Y * grad_alpha_X \
+                - B_X_T * grad_B_T_Z * grad_alpha_Y \
+                - B_Y_T * grad_B_T_X * grad_alpha_Z) * factor / B3_T
+
+# gbdrift0 is, up to prefactors, \vec{B} \times \nabla |B| \cdot \nabla \psi_{toroidal}.
+gbdrift0 = ( 0 \
+                 + B_X_T * grad_B_T_Y * grad_psi_toroidal_Z \
+                 + B_Y_T * grad_B_T_Z * grad_psi_toroidal_X \
+                 + B_Z_T * grad_B_T_X * grad_psi_toroidal_Y \
+                 - B_Z_T * grad_B_T_Y * grad_psi_toroidal_X \
+                 - B_X_T * grad_B_T_Z * grad_psi_toroidal_Y \
+                 - B_Y_T * grad_B_T_X * grad_psi_toroidal_Z) * factor / B3_T \
+                 * shat/(Bref*Aminor_p*Aminor_p*s0)
+
+import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(16,8.5))
+fig.patch.set_facecolor('white')
+
+numRows=3
+numCols=3
+
+legendFontSize = 8
+
+plt.subplot(numRows,numCols,1)
+plt.plot(theta,bmag,'-',label='me')
+if gistPresent:
+    plt.plot(gist_theta,gist_bmag,':r',label='gist')
+    plt.legend(loc=0,fontsize=legendFontSize)
+plt.xlabel('theta_boozer')
+plt.title('bmag')
+
+plt.subplot(numRows,numCols,4)
+plt.plot(theta,gds2,'-',label='me')
+if gistPresent:
+    plt.plot(gist_theta,gist_gds2,':r',label='gist')
+    plt.legend(loc=0,fontsize=legendFontSize)
+plt.xlabel('theta_boozer')
+plt.title('gds2')
+
+plt.subplot(numRows,numCols,5)
+plt.plot(theta,gds21,'-',label='me')
+if gistPresent:
+    plt.plot(gist_theta,-gist_gds21,':r',label='-1*gist (Note minus sign!)')
+    plt.legend(loc=0,fontsize=legendFontSize)
+plt.xlabel('theta_boozer')
+plt.title('gds21')
+
+plt.subplot(numRows,numCols,6)
+plt.plot(theta,gds22,'-',label='me')
+if gistPresent:
+    plt.plot(gist_theta,gist_gds22,':r',label='gist')
+    plt.legend(loc=0,fontsize=legendFontSize)
+plt.xlabel('theta_boozer')
+plt.title('gds22')
+
+plt.subplot(numRows,numCols,2)
+plt.plot(theta,gbdrift,'-',label='me')
+if gistPresent:
+    plt.plot(gist_theta,gist_gbdrift,':r',label='gist')
+    plt.legend(loc=0,fontsize=legendFontSize)
+plt.xlabel('theta_boozer')
+plt.title('gbdrift')
+
+plt.subplot(numRows,numCols,3)
+plt.plot(theta,gbdrift0,'-',label='me')
+if gistPresent:
+    plt.plot(gist_theta,gist_gbdrift0,':r',label='gist')
+    plt.legend(loc=0,fontsize=legendFontSize)
+plt.xlabel('theta_boozer')
+plt.title('gbdrift0')
+
+#plt.subplot(numRows,numCols,2)
+#plt.plot(theta,gbdrift0 / gbdrift,'-',label='me')
+#if gistPresent:
+#    plt.plot(gist_theta,gist_gbdrift0 / gist_gbdrift,':r',label='gist')
+#    plt.legend(loc=0,fontsize=legendFontSize)
+#plt.xlabel('theta_boozer')
+#plt.title('gbdrift0 / gbdrift')
+
+plt.subplot(numRows,numCols,7)
+plt.plot(theta,gds21 * gbdrift / (gds2 * gbdrift0),'-',label='me')
+if gistPresent:
+    plt.plot(gist_theta,-gist_gds21 * gist_gbdrift / (gist_gds2 * gist_gbdrift0),':r',label='-1*gist (Note minus sign!)')
+    plt.legend(loc=0,fontsize=legendFontSize)
+plt.xlabel('theta_boozer')
+plt.title('(gds21 gbdrift) / (gds2 gbdrift0)')
+
+#plt.subplot(numRows,numCols,7)
+#plt.plot(s_half[1:],iota_half[1:])
+#d=0.2
+#plt.plot([s_half[junpacked-1]-d, s_half[junpacked-1]+d], [iota-d*d_iota_d_s, iota+d*d_iota_d_s],'r')
+#plt.plot([s_half[junpacked-1]], [iota],'.b')
+#plt.xlabel('s')
+#plt.ylabel('iota')
+
+plt.tight_layout()
+plt.show()
+exit(0)

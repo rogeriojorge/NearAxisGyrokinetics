@@ -1,0 +1,168 @@
+#!/usr/bin/env python3
+
+# See "20200621-01 Relating theta-phi Fourier modes to theta Fourier modes.docx"
+
+max_n_to_plot = 3
+
+N_phi = 300
+
+filename = '/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/boozmn_HSX_QHS_vacuum_ns201.nc'
+max_s_for_fit = 0.3
+
+import numpy as np
+from scipy.io import netcdf
+import warnings
+import sys
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
+
+f = netcdf.netcdf_file(filename,'r',mmap=False)
+
+bmnc = f.variables['bmnc_b'][()]
+ixm = f.variables['ixm_b'][()]
+ixn = f.variables['ixn_b'][()]
+jlist = f.variables['jlist'][()]
+ns = f.variables['ns_b'][()]
+nfp = f.variables['nfp_b'][()]
+nNormal  = nfp
+Psi = f.variables['phi_b'][()]
+Psi_a = Psi[-1]
+
+f.close()
+
+s_full = np.linspace(0,1,ns)
+ds = s_full[1] - s_full[0]
+#s_half = s_full[1:] - 0.5*ds
+s_half = s_full[jlist-1] - 0.5*ds
+
+mask = s_half < max_s_for_fit
+
+s_fine = np.linspace(0,1,400)
+sqrts_fine = s_fine
+
+phi = np.linspace(0,2*np.pi / nfp, N_phi)
+
+B0 = np.zeros(N_phi)
+B1s = np.zeros(N_phi)
+B1c = np.zeros(N_phi)
+B20 = np.zeros(N_phi)
+B2s = np.zeros(N_phi)
+B2c = np.zeros(N_phi)
+
+#print('jlist:',jlist)
+#print('jlist.shape:',jlist.shape)
+#print('bmnc.shape:',bmnc.shape)
+#print('s_half.shape:',s_half.shape)
+
+import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(14,7))
+fig.patch.set_facecolor('w')
+
+numRows=3
+numCols=max_n_to_plot*2+1
+
+for jmn in range(len(ixm)):
+    m = ixm[jmn]
+    n = ixn[jmn] / nfp
+
+    if m>2:
+        continue
+
+    #if np.abs(n) > max_n_to_plot:
+    #    continue
+    doplot = (np.abs(n) <= max_n_to_plot)
+
+    row = m
+    col = n+max_n_to_plot
+    if doplot:
+        plt.subplot(numRows,numCols,row*numCols + col + 1)
+        plt.plot(np.sqrt(s_half), bmnc[:,jmn],'.-')
+        plt.xlabel(r'$\sqrt{s}$')
+        plt.title('bmnc(m='+str(m)+' n='+str(n)+')')
+
+    if m==0:
+        # For m=0, fit a polynomial in s (not sqrt(s)) that does not need to go through the origin.
+        degree = 5
+        p = np.polyfit(s_half[mask], bmnc[mask,jmn], degree)
+        if doplot:
+            plt.plot(np.sqrt(s_fine), np.polyval(p, s_fine),'r')
+        B0 += p[-1] * np.cos(n*nfp*phi)
+        B20 += p[-2] * np.cos(n*nfp*phi)
+    if m==1:
+        # For m=1, fit a polynomial in sqrt(s) to an odd function
+        x1 = np.sqrt(s_half[mask])
+        y1 = bmnc[mask,jmn]
+        x2 = np.concatenate((-x1,x1))
+        y2 = np.concatenate((-y1,y1))
+        #x2=x1
+        #y2=y1
+        degree = 5
+        p = np.polyfit(x2,y2, degree)
+        #print('p for m=1,n=',n,':',p)
+        B1c += p[-2] * (np.sin(n*nfp*phi) * np.sin(nNormal*phi) + np.cos(n*nfp*phi) * np.cos(nNormal*phi))
+        B1s += p[-2] * (np.sin(n*nfp*phi) * np.cos(nNormal*phi) - np.cos(n*nfp*phi) * np.sin(nNormal*phi))
+        #B1c += p[-2] * np.cos(n*nfp*phi)
+        #B1s += p[-2] * np.sin(n*nfp*phi)
+        if doplot:
+            plt.plot(sqrts_fine, np.polyval(p, sqrts_fine),'r')
+    if m==2:
+        # For m=2, fit a polynomial in s (not sqrt(s)) that does need to go through the origin.
+        x1 = s_half[mask]
+        y1 = bmnc[mask,jmn]
+        #x2 = np.concatenate((-x1,x1))
+        #y2 = np.concatenate((-y1,y1))
+        x2=x1
+        y2=y1
+        degree = 5
+        p = np.polyfit(x2,y2, degree)
+        B2c += p[-2] * (np.sin(n*nfp*phi) * np.sin(nNormal*phi) + np.cos(n*nfp*phi) * np.cos(nNormal*phi))
+        B2s += p[-2] * (np.sin(n*nfp*phi) * np.cos(nNormal*phi) - np.cos(n*nfp*phi) * np.sin(nNormal*phi))
+        #B2c += p[-2] * np.cos(n*nfp*phi)
+        #B2s += p[-2] * np.sin(n*nfp*phi)
+        if doplot:
+            plt.plot(np.sqrt(s_fine), np.polyval(p, s_fine),'r')
+
+
+# Convert expansion in sqrt(s) to an expansion in r
+BBar = np.mean(B0)
+
+sqrt_s_over_r = np.sqrt(np.pi * BBar / Psi_a)
+
+B1s *= sqrt_s_over_r
+B1c *= sqrt_s_over_r
+
+B20 *= sqrt_s_over_r*sqrt_s_over_r
+B2c *= sqrt_s_over_r*sqrt_s_over_r
+B2s *= sqrt_s_over_r*sqrt_s_over_r
+
+eta_bar = np.mean(B1c) / BBar
+print('Nphi =',N_phi)
+print('eta_bar: ',eta_bar)
+print('B0: ',BBar)
+print('sqrt_s_over_r: ',sqrt_s_over_r)
+print('B1c mean: ',np.mean(B1c))
+
+plt.figtext(0.5,0.995,filename,fontsize=6,ha='center',va='top')
+plt.tight_layout()
+
+################################################################
+################################################################
+
+fig = plt.figure(figsize=(6,7))
+fig.patch.set_facecolor('w')
+
+plt.plot(phi, phi*0, ':k')
+plt.plot(phi,B0,label='B0')
+plt.plot(phi,B1c,label='B1c')
+plt.plot(phi,B1s,label='B1s')
+plt.plot(phi,B20,label='B20')
+plt.plot(phi,B2c,label='B2c')
+plt.plot(phi,B2s,label='B2s')
+plt.xlabel('Boozer toroidal angle phi')
+plt.legend(loc=0)
+
+plt.figtext(0.5,0.995,filename,fontsize=6,ha='center',va='top')
+
+plt.show()
+

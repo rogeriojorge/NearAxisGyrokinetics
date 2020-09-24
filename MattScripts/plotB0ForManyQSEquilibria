@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+nnn=1
+
+if nnn==1:
+    files = [    ['NZ1988','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_NuhrenbergZille_1988_QHS.nc'], \
+             ['HSX','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_HSX_QHS_vacuum_ns201.nc'], \
+             #['KuQHS510','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/KuBoozer_2011_NuclFusion_QHS/n5qh.fx3.a55z_ns201/wout_n5qh.fx3.a55z.nc'], \
+             ['KuQHS48','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_n4qh.b4.a79a.nc'], \
+             ['NCSX','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_li383_1.4m_ns201.nc'], \
+             ['ESTELL','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_estell_24_scaled.nc']
+             #, \
+             ]
+else:
+    files = [    #['QHS46','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_qhs46_ns201.nc'], \
+             ['Drevlak','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_Drevlak_qh_8_7.nc'], \
+             ['ARIES-CS','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_n3are_R7.75B5.7_hires.nc'], \
+             ['QAS2','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_GarabedianQAS2_noCurrentOnAxis_ns201.nc'], \
+             ['CFQS','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_cfqs_freeBoundary_vacuum_hiRes.nc'], \
+             ['Henneberg','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_st_a34_i32v22_beta_35_scaledAUG_hires.nc'], \
+             #['W7-X','/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/wout_W7X.nc']
+             ]
+
+N_files = len(files)
+
+import numpy as np
+from scipy.io import netcdf
+import matplotlib.pyplot as plt
+
+N_phi = 250
+phi = np.linspace(0,2*np.pi, N_phi, endpoint=True)
+
+fig = plt.figure(figsize=(7,7))
+
+for j in range(N_files):
+    filename = files[j][1]
+    f = netcdf.netcdf_file(filename,'r',mmap=False)
+    bmnc = f.variables["bmnc"][()]
+    nfp = f.variables["nfp"][()]
+    xm_nyq = f.variables["xm_nyq"][()]
+    xn_nyq = f.variables["xn_nyq"][()]
+    print(bmnc.shape)
+    # order is bmnc[js, jmn]
+    f.close()
+
+    # Extrapolate from the half grid to the magnetic axis:
+    bmnc0 = 1.5 * bmnc[1,:] - 0.5 * bmnc[2,:]
+
+    B0 = np.zeros(N_phi)
+    for jmn in range(len(xm_nyq)):
+        if xm_nyq[jmn]==0:
+            angle = -xn_nyq[jmn]*phi
+            B0 += bmnc0[jmn] * np.cos(angle)
+
+    # Normalize B0 to the mean:
+    B0 /= np.mean(B0)
+
+    plt.plot(phi, B0, label=files[j][0])
+
+plt.legend(loc=0,fontsize=7)
+plt.xlabel('$\phi$')
+plt.ylabel('$B_0$')
+#plt.ylim((0,1.1))
+
+import os.path
+plt.figtext(0.5, 0.99, os.path.abspath(__file__), ha='center', va='top', fontsize=7)
+plt.savefig('/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/toPaper/B0QSEquilibria'+str(nnn)+'.pdf', format='pdf')
+plt.show()

@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+
+import numpy as np
+import os
+
+filename = 'geometry.dat'
+
+f = open(filename,'r')
+lines = f.readlines()
+f.close
+
+splitline = lines[1].split()
+nalpha = int(splitline[0])
+nzeta = int(splitline[1])
+
+print("nalpha: ", nalpha, "  nzeta: ", nzeta)
+
+splitline = lines[3].split()
+L_reference = float(splitline[0])
+B_reference = float(splitline[1])
+iota = float(splitline[2])
+shat = float(splitline[3])
+normalized_toroidal_flux_used = float(splitline[4])
+
+print("iota: ", iota)
+
+alpha = [float(x) for x in lines[5].split()]
+zeta = [float(x) for x in lines[7].split()]
+
+print('alpha: ', alpha)
+print('zeta: ', zeta)
+
+gds22_alpha = np.zeros((nalpha, nzeta * 2 + 1))
+
+index = 9 + (nalpha + 1) * 4
+print('Should be gds22: ', lines[index-1])
+
+for j in range(nalpha):
+    line = lines[index + j]
+    splitline = line.split()
+    for k in range(nzeta * 2 + 1):
+        gds22_alpha[j,k] = float(splitline[k])
+
+print('gds22:')
+print(gds22_alpha)
+
+# Next line is line 1127 of vmec_to_gs2_geometry_interface.f90
+factor = shat * shat / (L_reference * L_reference * B_reference * B_reference * normalized_toroidal_flux_used)
+
+psi_LCFS = L_reference * L_reference  * B_reference / 2
+psi = psi_LCFS * normalized_toroidal_flux_used
+
+G = (gds22_alpha / factor) / psi
+
+zeta2D, alpha2D = np.meshgrid(zeta, alpha)
+
+theta2D = alpha2D + iota * zeta2D
+
+# Stack 3 copies:
+G = np.concatenate((G,G,G))
+zeta2D = np.concatenate((zeta2D, zeta2D, zeta2D))
+theta2D = np.concatenate((theta2D - 2 * np.pi, theta2D, theta2D + 2 * np.pi))
+
+import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize=(6,4.5))
+fig.patch.set_facecolor('w')
+
+contours = np.linspace(0.5, 6, 25)
+plt.contourf(zeta2D, 2 * np.pi - theta2D, G, contours)
+plt.colorbar()
+
+plt.xlabel(r'Standard toroidal angle $\phi$')
+plt.ylabel(r'PEST poloidal angle $\theta$')
+plt.title(r'$G = |\psi|^{-1} |\nabla\psi|^2$ for normalized toroidal flux = ' + str(normalized_toroidal_flux_used))
+plt.ylim((0, 2 * np.pi))
+
+#plt.figtext(0.5, 0.995, 'normalized toroidal flux = ' + str(normalized_toroidal_flux_used) , ha='center', va='top', fontsize=6)
+plt.figtext(0.5, 0.005, os.path.abspath(__file__), ha='center', va='bottom', fontsize=6)
+
+plt.subplots_adjust(left=0.12, bottom=0.13, right=0.99, top=0.91)
+
+plt.show()
