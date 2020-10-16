@@ -301,9 +301,9 @@ def finalPlot(dataX,dataNA,plotExtent,strLabel,stells):
 
     if strLabel=='gamma':
         clb.ax.set_title(r'$\gamma$')
-    else if strLabel=='omega':
+    elif strLabel=='omega':
         clb.ax.set_title(r'$\omega$')
-    else if strLabel=='ky':
+    elif strLabel=='ky':
         clb.ax.set_title(r'$k_y$')
 
     plt.savefig(stells+'_max'+strLabel+'.pdf', format='pdf', bbox_inches='tight')
