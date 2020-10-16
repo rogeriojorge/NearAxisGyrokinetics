@@ -2,10 +2,10 @@
 ################################################
 ################################################
 
-number_of_field_periods_to_include = 8
+number_of_field_periods_to_include = 5
 normalizedfluxvec = [0.01]#,0.05,0.1,0.3]
 N_phi = 200 #Number of points for B0, B1 and B2 calculation and plotting
-plotSave = 0 #Spend time plotting results or not
+plotSave = 1 #Spend time plotting results or not
 
 stellDesigns=['WISTELL-A'         ,'NZ1988'                  ,'HSX'                 ,'KuQHS48'     ,'Drevlak'       ,'NCSX'            ,'ARIES-CS'             ,'QAS2'                                ,'ESTELL'          ,'CFQS'                          ,'Henneberg'   ]
 etab        =[0.01                ,0.155                     ,1.33                  ,0.147         ,0.0861          ,0.403             ,0.0740                 ,0.341                                 ,0.563             ,0.569                           ,0.269         ]
@@ -14,6 +14,7 @@ vmecFiles   =['wistella_midscale' ,'NuhrenbergZille_1988_QHS','HSX_QHS_vacuum_ns
 
 equilibriaFolder='equilibria/'
 gs2gridsFolder='gs2grids/'
+gxgridsFolder='gxgrids/'
 papergridsFolder='paperGrids/'
 vmecGS2interfaceFolder='VMEC_to_GS2'
 figuresFolder='Figures/'
@@ -228,10 +229,12 @@ else:
 	for desired_normalized_toroidal_flux in normalizedfluxvec:
 		print("  Normalized toroidal flux = "+str(desired_normalized_toroidal_flux))
 		gs2_output=[]
+		gx_output=[]
 		geometry_output=[]
 		i=0
 		for stells in stellDesigns:
-			gs2_output.append(gs2gridsFolder+'grid'+stells+'r'+str(desired_normalized_toroidal_flux)+'.out')
+			gs2_output.append(gs2gridsFolder+'gs2_grid'+stells+'r'+str(desired_normalized_toroidal_flux)+'.out')
+			gx_output.append(gxgridsFolder+'gx_grid'+stells+'r'+str(desired_normalized_toroidal_flux)+'.out')
 			geometry_output.append(papergridsFolder+'gridMath'+stells+'r'+str(desired_normalized_toroidal_flux)+'.out')
 			i=i+1
 
@@ -241,7 +244,7 @@ else:
 			f = netcdf.netcdf_file(equilibria[i],'r',mmap=False)
 			iota0 = f.variables['iotaf'][()][1]
 			nfp   = f.variables['nfp'][()]
-			process = subprocess.call(['./test_vmec_to_gs2_geometry_interface',eq,gs2_output[i],geometry_output[i],str(nfp*number_of_field_periods_to_include/abs(iota0)),str(desired_normalized_toroidal_flux)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			process = subprocess.call(['./test_vmec_to_gs2_geometry_interface',eq,gs2_output[i],geometry_output[i],str(nfp*number_of_field_periods_to_include/abs(iota0)),str(desired_normalized_toroidal_flux),gx_output[i]], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			i=i+1
 
 ###### Mixed Near-Axis/VMEC coefficients
@@ -327,7 +330,7 @@ else:
 print("Running Mathematica")
 i=0
 for eq in equilibria:
-	bashCommand = "wolframscript -noprompt -script grid_NearAxis.wls "+stellDesigns[i]+" "+papergridsFolder+" "+eq+" "+booz[i]+" "+str(abs(eta_barvec[i]))+" "+figuresFolder+" "+gs2gridsFolder+" "+MathDataFolder+" "+toPaperFolder+" "+str(plotSave)+" "+str(BBarvec[i])+" "+str(i+1)+" "+str(len(normalizedfluxvec))
+	bashCommand = "wolframscript -noprompt -script grid_NearAxis.wls "+stellDesigns[i]+" "+papergridsFolder+" "+eq+" "+booz[i]+" "+str(abs(eta_barvec[i]))+" "+figuresFolder+" "+gs2gridsFolder+" "+gxgridsFolder+" "+MathDataFolder+" "+toPaperFolder+" "+str(plotSave)+" "+str(BBarvec[i])+" "+str(i+1)+" "+str(len(normalizedfluxvec))
 	for rr in normalizedfluxvec:
 		bashCommand = bashCommand+" "+str(rr)
 	print(stellDesigns[i])
@@ -336,7 +339,7 @@ for eq in equilibria:
 	print("Working...", end='', flush=True)
 	#print(bashCommand)
 	#exit()
-	output = subprocess.call(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	#output = subprocess.call(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	print(" Success!")
 	i=i+1
 

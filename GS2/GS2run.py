@@ -54,7 +54,7 @@ def removeGS2(Path):
 
 ###### Function to obtain growth rate and plot phi2
 def getgamma(stellFile):
-	initialT=50
+	initialT=20
 	f = netcdf.netcdf_file(stellFile,'r',mmap=False)
 	y = np.log(f.variables['phi2'][()])
 	x = f.variables['t'][()]
@@ -184,9 +184,9 @@ for stells in stellDesigns:
 		replace(stells+"/gs2Input_"+rxText+"NA.in",' gridout_file = "./gridESTELLr0.01NA.out"',' gridout_file = "./grid'+rxText+'NA.out"')
 		os.chdir(stells)
 		bashCommand = "mpirun -n 4 ./gs2 gs2Input_"+rxText+".in"
-		output = subprocess.call(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		#output = subprocess.call(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		bashCommand = "mpirun -n 4 ./gs2 gs2Input_"+rxText+"NA.in"
-		output = subprocess.call(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		#output = subprocess.call(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		removeGS2(os.getcwd())
 		gammaTempX=np.append(gammaTempX,getgamma("gs2Input_"+rxText+".out.nc"))
 		gammaTempNA=np.append(gammaTempNA,getgamma("gs2Input_"+rxText+"NA.out.nc"))

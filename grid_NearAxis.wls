@@ -23,14 +23,15 @@ BOOZfileIn       = $ScriptCommandLine[[5]];
 etabar           = ToExpression@$ScriptCommandLine[[6]];
 figuresFolder    = $ScriptCommandLine[[7]];
 gs2gridsFolder   = $ScriptCommandLine[[8]];
-MathDataFolder   = $ScriptCommandLine[[9]];
-toPaperFolder    = $ScriptCommandLine[[10]];
-plotSave         = ToExpression@$ScriptCommandLine[[11]];
-B0               = ToExpression@$ScriptCommandLine[[12]];
+gxgridsFolder    = $ScriptCommandLine[[9]];
+MathDataFolder   = $ScriptCommandLine[[10]];
+toPaperFolder    = $ScriptCommandLine[[11]];
+plotSave         = ToExpression@$ScriptCommandLine[[12]];
+B0               = ToExpression@$ScriptCommandLine[[13]];
 (*B0 = Import[BOOZfileIn, {"Datasets", "bmnc_b"}][[1, 1]];*)
-stellN           = ToExpression@$ScriptCommandLine[[13]];
-nradius          = ToExpression@$ScriptCommandLine[[14]];
-radiusvec        = Table[ToExpression@$ScriptCommandLine[[14+ii]],{ii,1,nradius}];
+stellN           = ToExpression@$ScriptCommandLine[[14]];
+nradius          = ToExpression@$ScriptCommandLine[[15]];
+radiusvec        = Table[ToExpression@$ScriptCommandLine[[15+ii]],{ii,1,nradius}];
 saveStellFile    = MathDataFolder<>stell<>"NA_MathData.mx";
 
 If[FileExistsQ[saveStellFile],
@@ -178,8 +179,8 @@ Table[
 	cvdriftNew[theta_,j]  = gbdriftNew[theta,j];
 	gbdrift0New[theta_,j] = -2 Sqrt[2] Sqrt[phiEDGE/B0] shat[j] etabar Sin[theta] (1 - 0 2 rVMEC[j] etabar Cos[theta]); 
 	cvdrift0New[theta_,j] = gbdrift0New[theta,j];
-	zminNA[j]		    = x/.Last[FindMaximum[bmagNew[x,j],{x,Min[tgridVMEC[j]]}]];
-	zmaxNA[j]		    = x/.Last[FindMaximum[bmagNew[x,j],{x,Max[tgridVMEC[j]]}]];
+	zminNA[j]		    = Min[tgridVMEC[j]];(*x/.Last[FindMaximum[bmagNew[x,j],{x,Min[tgridVMEC[j]]}]];*)
+	zmaxNA[j]		    = Max[tgridVMEC[j]];(*x/.Last[FindMaximum[bmagNew[x,j],{x,Max[tgridVMEC[j]]}]];*)
 	tgridNA[j] = Table[i,{i,zminNA[j],zmaxNA[j],(zmaxNA[j]-zminNA[j])/(Length@tgridVMEC[j]-1)}];
 	zmin = Min[tgridVMEC[j]];
 	zmax = Max[tgridVMEC[j]];
@@ -240,8 +241,21 @@ Table[
 	For[i=1,i<=nzNA,i++,zz=paramTheta[i];text=text<>"\n"<>ToStringA[0.0]<>" "<>ToStringA[0.0]<>" "<>ToStringA[paramZ[i]]];
 	text=text<>"\naplot aprime tgrid";
 	For[i=1,i<=nzNA,i++,zz=paramTheta[i];text=text<>"\n"<>ToStringA[0.0]<>" "<>ToStringA[0.0]<>" "<>ToStringA[paramZ[i]]];
-	Export[gs2gridsFolder<>"grid"<>stell<>"r"<>ToString@normalizedtorFlux[j]<>"NA.out",text,"String",CharacterEncoding->"ASCII"];
-	
+	Export[gs2gridsFolder<>"gs2_grid"<>stell<>"r"<>ToString@normalizedtorFlux[j]<>"NA.out",text,"String",CharacterEncoding->"ASCII"];
+
+	(*Output to GX grid*)
+	text="\nntgrid nperiod ntheta drhodpsi rmaj shat kxfac q scale";
+	text=text<>"\n"<>ToString@ntgrid<>" "<>ToString@nperiod<>" "<>ToString@nzNA<>" "<>ToString@drhodpsi<>" "<>ToString@rmaj<>" "<>ToString@shat[j]<>" "<>ToString@kxfac<>" "<>ToStringA[1/iota]<>" 1.0";
+	text=text<>"\ngbdrift gradpar grho tgrid";
+	For[i=1,i<=nzNA,i++,zz=paramTheta[i];text=text<>"\n"<>ToStringA[gbdriftNew[zz,j]]<>" "<>ToStringA[gradparNew[zz,j]]<>" "<>ToStringA[1]<>" "<>ToStringA[paramZ[i]]];
+	text=text<>"\ncvdrift gds2 bmag tgrid";
+	For[i=1,i<=nzNA,i++,zz=paramTheta[i];text=text<>"\n"<>ToStringA[cvdriftNew[zz,j]]<>" "<>ToStringA[gds2New[zz,j]]<>" "<>ToStringA[bmagNew[zz,j]]<>" "<>ToStringA[paramZ[i]]];
+	text=text<>"\ngds21 gds22 tgrid";
+	For[i=1,i<=nzNA,i++,zz=paramTheta[i];text=text<>"\n"<>ToStringA[gds21New[zz,j]]<>" "<>ToStringA[gds22New[zz,j]]<>" "<>ToStringA[paramZ[i]]];
+	text=text<>"\ncvdrift0 gbdrift0 tgrid";
+	For[i=1,i<=nzNA,i++,zz=paramTheta[i];text=text<>"\n"<>ToStringA[cvdrift0New[zz,j]]<>" "<>ToStringA[gbdrift0New[zz,j]]<>" "<>ToStringA[paramZ[i]]];
+	Export[gxgridsFolder<>"gx_grid"<>stell<>"r"<>ToString@normalizedtorFlux[j]<>"NA.out",text,"String",CharacterEncoding->"ASCII"];
+
 	(*Export Everything and Exit*)
 	(*
 	DumpSave[MathDataFolder<>"/MathData"<>stell<>"r"<>ToString@normalizedtorFlux[j]<>".mx", "Global`"];
@@ -263,30 +277,30 @@ legVMEC=Table[Row[{stell<>" s = ", N @ radiusvec[[j]]}],{j,1,nradius}];
 thetaBooz[z_,j_]=alphaVMEC[j]+(iota - nNormal)*phiA[z];
 
 rplotBmag=Show[
-			   Plot[Evaluate[Table[BstrengthNA[thetaBooz[z,j],j],{j,1,nradius}]], {z, zminNA[1], zmaxNA[1],}(*, PlotLegends->legNA*), PlotStyle->{Dashed,Dashed,Dashed,Dashed,Dashed,Dashed}],
+			   Plot[Evaluate[Table[BstrengthNA[thetaBooz[z,j],j],{j,1,nradius}]], {z, zminNA[1], zmaxNA[1]}(*, PlotLegends->legNA*), PlotStyle->{Dashed,Dashed,Dashed,Dashed,Dashed,Dashed}],
 			   ListLinePlot[Evaluate[Table[Transpose@{tgridVMEC[j], BstrengthGK[j]},{j,1,nradius}]](*,PlotLegends->legVMEC*)]
 		  ,Evaluate@PlotOptions2[MaTeX["B",Magnification->textMagnification]]];
 rplotgradAlpha2r2=Show[
 					   ListLinePlot[Evaluate[Table[Transpose@{tgridVMEC[j], gradAlpha2r2GK[j]},{j,1,nradius}]](*,PlotLegends->legVMEC*)],
-					   Plot[Evaluate[Table[gradAlpha2r2NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1],, zmaxNA[1],},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)]
+					   Plot[Evaluate[Table[gradAlpha2r2NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1], zmaxNA[1]},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)]
 	      		  , Evaluate@PlotOptions2[MaTeX["\\psi |\\nabla \\alpha|^2",Magnification->textMagnification]]];
 rplotgradPsi2r2=Show[
 			         ListLinePlot[Evaluate[Table[Transpose@{tgridVMEC[j], gradPsi2r2GK[j]},{j,1,nradius}]](*,PlotLegends->legVMEC*)],
-			         Plot[Evaluate[Table[gradPsi2r2NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1],, zmaxNA[1],},PlotRange->All,PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)]
+			         Plot[Evaluate[Table[gradPsi2r2NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1], zmaxNA[1]},PlotRange->All,PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)]
 		  		, Evaluate@PlotOptions2[MaTeX["|\\nabla \\psi|^2/\psi",Magnification->textMagnification]]];
 rplotgradAlphaPsi=Show[
 			  		   ListLinePlot[Evaluate[Table[Transpose@{tgridVMEC[j], gradAlphaPsiGK[j]},{j,1,nradius}]](*,PlotLegends->legVMEC*)],
-			  		   Plot[Evaluate[Table[gradAlphaPsiNA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1],, zmaxNA[1],},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)]
+			  		   Plot[Evaluate[Table[gradAlphaPsiNA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1], zmaxNA[1]},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)]
 		  		  , Evaluate@PlotOptions2[MaTeX["\\nabla \\psi \\cdot \\nabla \\alpha",Magnification->textMagnification]]];
 rplotBcrossGradBdotGradAlphaOB3=Show[
 									 ListLinePlot[Evaluate[Table[Transpose@{tgridVMEC[j], BcrossGradBdotGradAlphaOB3GK[j]},{j,1,nradius}]](*,PlotLegends->legVMEC*)],
-									 Plot[Evaluate[Table[BcrossGradBdotGradAlphaOB3NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1],, zmaxNA[1],},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)],
-									 Plot[BcrossGradBdGradAlphaMixed[phiA[z]], {z, zminNA[1],, zmaxNA[1],},PlotStyle->{Magenta, DotDashed}(*,PlotLegends->{"Near-Axis"}*)]
+									 Plot[Evaluate[Table[BcrossGradBdotGradAlphaOB3NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1], zmaxNA[1]},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)],
+									 Plot[BcrossGradBdGradAlphaMixed[phiA[z]], {z, zminNA[1], zmaxNA[1]},PlotStyle->{Magenta, DotDashed}(*,PlotLegends->{"Near-Axis"}*)]
 			  					, Evaluate@PlotOptions2[MaTeX["{\\sqrt \\psi} \\mathbf B \\times \\nabla B \\cdot \\nabla \\alpha/B^3",Magnification->textMagnification]]];
 rplotBcrossGradBdotGradPsiOB3=Show[
 								   ListLinePlot[Evaluate[Table[Transpose@{tgridVMEC[j], BcrossGradBdotGradPsiOB3GK[j]},{j,1,nradius}]](*,PlotLegends->legVMEC*)],
-								   Plot[Evaluate[Table[BcrossGradBdotGradPsiOB3NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1],, zmaxNA[1],},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)],
-								   Plot[BcrossGradBdGradPsiMixed[phiA[z]], {z, zminNA[1],, zmaxNA[1],},PlotStyle->{Magenta,DotDashed}(*,PlotLegends->{"Near-Axis"}*)]
+								   Plot[Evaluate[Table[BcrossGradBdotGradPsiOB3NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1], zmaxNA[1]},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)],
+								   Plot[BcrossGradBdGradPsiMixed[phiA[z]], {z, zminNA[1], zmaxNA[1]},PlotStyle->{Magenta,DotDashed}(*,PlotLegends->{"Near-Axis"}*)]
 			  				  , Evaluate@PlotOptions2[MaTeX["{\\sqrt \\psi}^{-1}\\mathbf B \\times \\nabla B \\cdot \\nabla \\psi/B^3",Magnification->textMagnification]]];
 
 legFont[tit_] = Style[tit, 19, FontFamily -> "Latin Modern Math"];

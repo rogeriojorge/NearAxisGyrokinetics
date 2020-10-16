@@ -8,10 +8,10 @@ program test_vmec_to_gs2_geometry_interface
   ! Input parameters
   !*********************************************************************
 
-  character(len=2000) :: vmec_filename, gs2_output, geometry_output,number_of_field_periods_to_includestr, desired_normalized_toroidal_fluxstr
+  character(len=2000) :: vmec_filename, gs2_output, gx_output, geometry_output,number_of_field_periods_to_includestr, desired_normalized_toroidal_fluxstr
   integer, parameter :: nalpha = 1
-  integer, parameter :: nzgrid = 851
-  integer, parameter :: nlambda = 50
+  integer, parameter :: nzgrid = 350
+  integer, parameter :: nlambda = 40
   real :: zeta_center = 0.0
   real :: number_of_field_periods_to_include, desired_normalized_toroidal_flux
   integer :: vmec_surface_option = 0
@@ -45,6 +45,7 @@ program test_vmec_to_gs2_geometry_interface
   read(number_of_field_periods_to_includestr , *) number_of_field_periods_to_include
   call get_command_argument(5,desired_normalized_toroidal_fluxstr)
   read(desired_normalized_toroidal_fluxstr , *) desired_normalized_toroidal_flux
+  call get_command_argument(6,gx_output)
 
   call vmec_to_gs2_geometry_interface(vmec_filename, nalpha, nzgrid, zeta_center, number_of_field_periods_to_include, &
        desired_normalized_toroidal_flux, vmec_surface_option, verbose, &
@@ -126,6 +127,7 @@ program test_vmec_to_gs2_geometry_interface
   ! print *,lambda(j,:)
   end do
 
+  !Write GS2 grid file
   iunit = 6
   open(file=gs2_output,unit=iunit)
   !write (iunit,*) 'nalpha nzgrid'
@@ -218,6 +220,44 @@ program test_vmec_to_gs2_geometry_interface
   write (iunit,*) 'alpha=',alpha
   write (iunit,*) 'nlambda=',nlambda
   write (iunit,*) 'normalized_flux=',normalized_toroidal_flux_used
+
+  close(iunit)
+
+  
+  !Write GX grid file
+  iunit = 6
+  open(file=gx_output,unit=iunit)
+
+  write (iunit,*) 'ntgrid nperiod ntheta drhodpsi rmaj shat kxfac q scale'
+  write (iunit,*) nzgrid, 1, 2*nzgrid+1, 1., 1., shat, 1, safety_factor_q, 1.0
+
+  write (iunit,*) 'gbdrift gradpar grho tgrid'
+  do j=1,nalpha
+      do i=1,2*nzgrid+1
+         write (iunit,*) gbdrift(j,i-nzgrid-1), gradpar(j,i-nzgrid-1), 1., zeta(i-nzgrid-1)
+      end do
+  end do
+
+  write (iunit,*) 'cvdrift gds2 bmag tgrid'
+  do j=1,nalpha
+      do i=1,2*nzgrid+1
+         write (iunit,*) cvdrift(j,i-nzgrid-1), gds2(j,i-nzgrid-1), bmag(j,i-nzgrid-1), zeta(i-nzgrid-1)
+      end do
+  end do
+
+  write (iunit,*) 'gds21 gds22 tgrid'
+  do j=1,nalpha
+      do i=1,2*nzgrid+1
+         write (iunit,*) gds21(j,i-nzgrid-1), gds22(j,i-nzgrid-1), zeta(i-nzgrid-1)
+      end do
+  end do
+
+  write (iunit,*) 'cvdrift0 gbdrift0 tgrid'
+  do j=1,nalpha
+      do i=1,2*nzgrid+1
+         write (iunit,*) cvdrift0(j,i-nzgrid-1), gbdrift0(j,i-nzgrid-1), zeta(i-nzgrid-1)
+      end do
+  end do
 
   close(iunit)
 

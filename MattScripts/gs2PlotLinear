@@ -1,0 +1,206 @@
+#!/usr/bin/env python
+
+# This verion of gs2PlotLinear is designed for use with versions of gs2 that save complex omega
+# in the .out.nc file, such as the trunk version as of Jan 2016.
+
+import matplotlib.pyplot as plt
+import numpy as np
+import inspect, os
+from scipy.io import netcdf
+import glob
+import sys
+
+fractionToConsider = 0.7
+
+print "This is "+ inspect.getfile(inspect.currentframe())
+print "This script assumes it is being called from a CodeRunner directory."
+print "Usage:"
+print "  gs2PlotLinear <listOfRunNumbers> <arguments>"
+print "(The list of run numbers must be comma-delimited with no spaces.)"
+print "Optional arguments (which can be in any order):"
+print "  n - Suppress plots of the fits for each run"
+print " float in (0,1] - Average this fraction of total time (from the end of the run)"
+print "                  (Default is ",fractionToConsider,")"
+print " "
+
+showFitPlots = True
+
+if len(sys.argv) < 2:
+    print "Error! You must have at least 1 argument: a list of the run numbers to plot, separated by commas and no spaces."
+    exit(1)
+
+for i in range(2,len(sys.argv)):
+    arg = sys.argv[i]
+    try:
+        temp = float(arg)
+    except:
+        # We get an exception if the argument is not a float. This is fine.
+        pass
+    else:
+        if temp>0 and temp<= 1:
+            fractionToConsider = temp
+            print "Averaging over a fraction ",temp," of time at the end of each run to compute frequency and growth rate."
+        else:
+            print "Error! The fraction of time for averaging must be in the range (0,1]."
+            exit(1)
+        continue
+
+    if arg=="n":
+        showFitPlots = False
+
+    else:
+        print "Error! I do not recognize the argument "+arg
+        exit(1)
+
+runNumStrings = sys.argv[1].split(',')
+kys = []
+growthRates = []
+realFrequencies = []
+runNames = []
+
+for runNumString in runNumStrings:
+    try:
+        runNum = int(runNumString)
+    except:
+        print "Error! Unable to convert part of the argument to an integer."
+        print "The string I was trying to convert was: ",runNumString
+        raise
+
+    ncFiles = glob.glob('v/id_'+runNumString+'/*.out.nc')
+    if len(ncFiles)==0:
+        print "No .out.nc file found in directory v/id_"+runNumString+" so skipping this directory."
+        continue
+
+    if len(ncFiles)>1:
+        print "WARNING: Multiple .out.nc file found in directory v/id_"+runNumString+". Only the first will be used."
+
+    runName = ncFiles[0][6+len(runNumString):-7]
+    print " "
+    print "Processing run: "+runName
+    runNames.append(runName)
+
+    # Compute growth rate:
+
+    f = netcdf.netcdf_file(ncFiles[0],'r',mmap=False)
+    t = f.variables['t'][()]
+    ky = f.variables['ky'][()]
+    phi2_by_ky = f.variables['phi2_by_ky'][()]
+    omega = f.variables['omega'][()]
+    print "omega.shape:",omega.shape
+    f.close()
+
+    kys.append(ky)
+    startIndex = int(len(t)*(1-fractionToConsider))
+
+    growthRate = []
+    for i in range(len(ky)):
+        mask = np.isfinite(phi2_by_ky[:,i])
+        data_x = t[mask]
+        data_y = phi2_by_ky[mask,i]
+        fit = np.polyfit(data_x[startIndex:], np.log(data_y[startIndex:]), 1)
+        thisGrowthRate = fit[0]/2
+        growthRate.append(thisGrowthRate)
+
+    growthRates.append(growthRate)
+
+    # Done computing growth rate.
+    # Now compute real frequency.
+
+    t_realFreq = t
+    realFreqVsTime = []
+    realFrequency = []
+    for i in range(len(ky)):
+        realFreqVsTime.append(omega[:,i,0,0])
+        realFrequency.append(np.mean(realFreqVsTime[i][startIndex:]))
+    realFrequencies.append(realFrequency)
+
+    # Done computing real frequency.
+
+    for i in range(len(ky)):
+        print "At ky = ",ky[i]," the growth rate is ",growthRate[i]," and the real frequency is ",realFrequency[i]
+
+
+    if showFitPlots:
+        fig = plt.figure(1)
+        fig.patch.set_facecolor('white')
+
+        numRows = 1
+        numCols = 2
+
+        plt.subplot(numRows, numCols, 1)
+        for i in range(len(ky)):
+            plt.semilogy(t,phi2_by_ky[:,i],label='ky='+str(ky[i]))
+            plt.plot(t[startIndex:], phi2_by_ky[-1,i]*np.exp((t[startIndex:]-t[-1])*growthRate[i]*2), ':k')
+        plt.xlabel('t')
+        plt.title('phi2_by_ky')
+        plt.legend(frameon=False,prop=dict(size='x-small'),loc=2)
+
+        plt.subplot(numRows, numCols, 2)
+        ymin=0
+        ymax=0
+        for i in range(len(ky)):
+            plt.plot(t_realFreq, realFreqVsTime[i],label='ky='+str(ky[i]))
+            plt.plot(t_realFreq[startIndex:], np.ones(len(t_realFreq[startIndex:]))*realFrequency[i], ':k')
+            ymin = min(ymin,min(realFreqVsTime[i][startIndex:]))
+            ymax = max(ymax,max(realFreqVsTime[i][startIndex:]))
+        plt.xlabel('t')
+        delta = ymax-ymin
+        plt.ylim([ymin-0.1*delta,ymax+0.1*delta])
+        plt.title('Real frequency')
+        plt.legend(frameon=False,prop=dict(size='x-small'),loc=2)
+
+        # Maximize window. The command for this depends on the backend.
+        mng = plt.get_current_fig_manager()
+        mng.resize(*mng.window.maxsize())
+        #mng.frame.Maximize(True)
+
+        titleString = os.getcwd() + "/" + ncFiles[0]
+        ax = fig.add_axes([0,0,1,1], frameon=False)
+        ax.text(0.5,0.99,titleString,horizontalalignment='center',verticalalignment='top')
+
+        plt.show()
+
+
+fig = plt.figure(2)
+fig.patch.set_facecolor('white')
+
+numRows = 1
+numCols = 2
+
+plt.subplot(numRows, numCols, 1)
+minKy = 0
+maxKy = max(kys[0])
+for i in range(len(kys)):
+    plt.plot(kys[i],growthRates[i],'.-',label=runNames[i])
+    minKy = min(minKy, min(kys[i]))
+    maxKy = max(maxKy, max(kys[i]))
+plt.xlabel('ky')
+plt.title('Growth rate')
+plt.legend(frameon=False,prop=dict(size='x-small'),loc=2)
+plt.plot([minKy,maxKy], [0,0],':k')
+
+plt.subplot(numRows, numCols, 2)
+for i in range(len(kys)):
+    plt.plot(kys[i],realFrequencies[i],'.-',label=runNames[i])
+plt.xlabel('ky')
+plt.title('Real frequency')
+plt.legend(frameon=False,prop=dict(size='x-small'),loc=2)
+plt.plot([minKy,maxKy], [0,0],':k')
+
+titleString = "Plot generated by "+ os.path.abspath(inspect.getfile(inspect.currentframe())) + "\nRun in "+os.getcwd()
+ax = fig.add_axes([0,0,1,1], frameon=False)
+ax.text(0.5,0.99,titleString,horizontalalignment='center',verticalalignment='top')
+
+# Maximize window. The command for this depends on the backend.
+mng = plt.get_current_fig_manager()
+mng.resize(*mng.window.maxsize())
+
+if len(kys)==1:
+    f=open('linear_results_'+runNumStrings[0],'w')
+    f.write('ky, growth rate, real frequency\n')
+    for j in range(len(kys[0])):
+        f.write(str(kys[0][j])+" "+str(growthRates[0][j])+" "+str(realFrequencies[0][j])+'\n')
+    f.close()
+
+plt.show()
+
