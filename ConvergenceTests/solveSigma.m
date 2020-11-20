@@ -3,6 +3,7 @@
 
 SetDirectory[Directory[]];
 pi = N[Pi,10];
+mu0 = 4*pi*10^(-7)
 
 etabar        = ToExpression[$ScriptCommandLine[[2]]];
 B0            = ToExpression@$ScriptCommandLine[[3]];
@@ -21,7 +22,7 @@ kxfac    = 1;
 If[FileExistsQ[saveStellFile],DumpGet[saveStellFile];,
 	raxis = Import[VMECfileIn, {"Datasets", "raxis_cc"}];
 	zaxis = Import[VMECfileIn, {"Datasets", "zaxis_cs"}];
-	R0 = raxis[[1]]; eR = raxis[[2 ;; 6]]; eZ = zaxis[[2 ;; 6]];
+	R0 = raxis[[1]]; eR = If[Length[raxis] == 1, 0, raxis[[2 ;; 6]]]; eZ = If[Length[zaxis] == 1, 0, zaxis[[2 ;; 6]]];
 	NFP = Import[VMECfileIn, {"Datasets", "nfp"}];
 
 	sigma0 = 0;
@@ -31,7 +32,10 @@ If[FileExistsQ[saveStellFile],DumpGet[saveStellFile];,
 	tol = 10^-6;
 	sigmaIn = 0.1*Cos[NFP t];
 	iota0 = 0.1;
-	I2oB0 = 0.;
+
+	phiEDGE = Abs[Last[Import[VMECfileIn, {"Datasets", "phi"}]]];
+	ctor = Import[VMECfileIn, {"Datasets", "ctor"}];
+	I2oB0 = (mu0*ctor)/(2*phiEDGE);
 
 	(************)
 
@@ -134,8 +138,8 @@ If[FileExistsQ[saveStellFile],DumpGet[saveStellFile];,
 (**********************)
 
 (*Normalization Parameters*)
-Aminor = Import[VMECfileIn, {"Datasets", "Aminor_p"}];
-phiEDGE = Last[Import[VMECfileIn, {"Datasets", "phi"}]]/(2 pi);
+Aminor = Abs[Import[VMECfileIn, {"Datasets", "Aminor_p"}]];
+phiEDGE = Abs[Last[Import[VMECfileIn, {"Datasets", "phi"}]]/(2 pi)];
 
 (*Grid Parameters*)
 tgridVMEC    	   = ToExpression@StringReplace[DeleteCases[Flatten[StringSplit[FindList[fileIn, "tgrid("][[1]]]],StringSplit[{}[[1]]] // Quiet][[4 ;;]], {"E+" :> "*^", "E-" :> "*^-"}];
@@ -149,11 +153,11 @@ nlambda            = ToExpression@StringReplace[DeleteCases[Flatten[StringSplit[
 rVMEC 			    = -Sqrt[((2 phiEDGE normalizedtorFlux)/B0)];
 Phi[theta_] 	    = (theta - alphaVMEC)/(iota - nNormal);
 bmagNew[theta_]     = (Aminor^2 B0 (1 + rVMEC etabar Cos[theta]))/(2 phiEDGE);
-gradparNew[theta_]  = ((2 Aminor pi (1 + rVMEC etabar Cos[theta]))/Laxis)/(sprimeFunc[(alphaVMEC-theta)/(iota-nNormal)]*2*pi/Laxis);
+gradparNew[theta_]  = Sign[Last[Import[VMECfileIn, {"Datasets", "phi"}]]]*((2 Aminor pi (1 + rVMEC etabar Cos[theta]))/Laxis)/(sprimeFunc[(alphaVMEC-theta)/(iota-nNormal)]*2*pi/Laxis);
 gds2New[theta_]     = ((Aminor^2) B0 )/(2 phiEDGE) ((etabar^2 Cos[theta]^2)/curvFunc[Phi[theta]]^2 + (curvFunc[Phi[theta]]^2 (Sin[theta] + Cos[theta] sigma[Phi[theta]])^2)/etabar^2);
-gds21New[theta_]    = -1/(2 phiEDGE) Aminor^2  shat ((B0 etabar^2 Cos[theta] Sin[theta])/curvFunc[Phi[theta]]^2 + 1/etabar^2 B0 curvFunc[Phi[theta]]^2 (Sin[theta] + Cos[theta] sigma[Phi[theta]]) (-Cos[theta] + Sin[theta] sigma[Phi[theta]]));
+gds21New[theta_]    = -Sign[Last[Import[VMECfileIn, {"Datasets", "phi"}]]]/(2 phiEDGE) Aminor^2  shat ((B0 etabar^2 Cos[theta] Sin[theta])/curvFunc[Phi[theta]]^2 + 1/etabar^2 B0 curvFunc[Phi[theta]]^2 (Sin[theta] + Cos[theta] sigma[Phi[theta]]) (-Cos[theta] + Sin[theta] sigma[Phi[theta]]));
 gds22New[theta_]    = (Aminor^2 B0 shat^2 (etabar^4 Sin[theta]^2 + curvFunc[Phi[theta]]^4 (Cos[theta] - Sin[theta] sigma[Phi[theta]])^2))/(2 phiEDGE etabar^2 curvFunc[Phi[theta]]^2);
-gbdriftNew[theta_]  = (2 Sqrt[2] etabar Cos[theta])/Sqrt[B0/phiEDGE] (1 - 0 2 rVMEC etabar Cos[theta]); 
+gbdriftNew[theta_]  = Sign[Last[Import[VMECfileIn, {"Datasets", "phi"}]]]*(2 Sqrt[2] etabar Cos[theta])/Sqrt[B0/phiEDGE] (1 - 0 2 rVMEC etabar Cos[theta]); 
 cvdriftNew[theta_]  = gbdriftNew[theta];
 gbdrift0New[theta_] = -2 Sqrt[2] Sqrt[phiEDGE/B0] shat etabar Sin[theta] (1 - 0 2 rVMEC etabar Cos[theta]); 
 cvdrift0New[theta_] = gbdrift0New[theta];

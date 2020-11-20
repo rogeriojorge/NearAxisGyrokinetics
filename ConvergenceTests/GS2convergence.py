@@ -2,24 +2,25 @@
 ################################################
 ################################################
 
-vmecFiles    = ['wistella_midscale' ,'NuhrenbergZille_1988_QHS','HSX_QHS_vacuum_ns201','n4qh.b4.a79a','Drevlak_qh_8_7','li383_1.4m_ns201','n3are_R7.75B5.7_hires','GarabedianQAS2_noCurrentOnAxis_ns201','estell_24_scaled','cfqs_freeBoundary_vacuum_hiRes','st_a34_i32v22_beta_35_scaledAUG_hires']
-stellDesigns = ['WISTELL-A'         ,'NZ1988'                  ,'HSX'                 ,'KuQHS48'     ,'Drevlak'       ,'NCSX'            ,'ARIES-CS'             ,'QAS2'                                ,'ESTELL'          ,'CFQS'                          ,'Henneberg'   ]
-etabar       = [0.791               ,0.157                     ,1.28                  ,0.147         ,0.0899          ,0.408             ,0.0740                 ,0.347                                 ,0.570             ,0.586                           ,0.302         ]
-B0           = [2.54                ,0.205                     ,1.00                  ,1.20          ,3.97            ,1.55              ,5.69                   ,1.79                                  ,1.00              ,0.933                           ,2.41          ]
-nzgridvec    = [300                 ,300                       ,300                   ,300           ,300             ,300               ,300                    ,350                                   ,300               ,300                             ,300           ]
-nlambdavec   = [40                  ,40                        ,40                    ,40            ,40              ,40                ,40                     ,45                                    ,40                ,40                              ,40            ]
-NFPtoInclude = [4                   ,3                         ,3                     ,3             ,3               ,2                 ,2                      ,2                                     ,3                 ,2                               ,2             ]
-negridvec    = [12                  ,12                        ,12                    ,12            ,12              ,12                ,12                     ,12                                    ,12                ,12                              ,12            ]
-deltaTvec    = [0.4                 ,0.4                       ,0.4                   ,0.4           ,0.4             ,0.4               ,0.4                    ,0.3                                   ,0.4               ,0.4                             ,0.4           ]
-simTimevec   = [200                 ,200                       ,200                   ,200           ,200             ,200               ,200                    ,200                                   ,200               ,200                             ,200           ]
-ngaussvec    = [3                   ,3                         ,3                     ,3             ,3               ,3                 ,3                      ,3                                     ,3                 ,3                               ,3             ]
-## 11 stellarators total
+vmecFiles    = ['wistella_midscale' ,'NuhrenbergZille_1988_QHS','HSX_QHS_vacuum_ns201','n4qh.b4.a79a','Drevlak_qh_8_7','li383_1.4m_ns201','n3are_R7.75B5.7_hires','GarabedianQAS2_noCurrentOnAxis_ns201','estell_24_scaled','cfqs_freeBoundary_vacuum_hiRes','st_a34_i32v22_beta_35_scaledAUG_hires','LandremanSengupta2019_section5.4','ITER']
+stellDesigns = ['WISTELL-A'         ,'NZ1988'                  ,'HSX'                 ,'KuQHS48'     ,'Drevlak'       ,'NCSX'            ,'ARIES-CS'             ,'QAS2'                                ,'ESTELL'          ,'CFQS'                          ,'Henneberg'                            ,'NAQS'                             ,'ITER']
+etabar       = [0.791               ,0.157                     ,1.28                  ,0.147         ,0.0899          ,0.408             ,0.0740                 ,0.347                                 ,0.570             ,0.586                           ,0.302                                  ,1.549                              ,0.115]
+B0           = [2.54                ,0.205                     ,1.00                  ,1.20          ,3.97            ,1.55              ,5.69                   ,1.79                                  ,1.00              ,0.933                           ,2.41                                   ,1.001                              ,5.358]
+nzgridvec    = [300                 ,300                       ,300                   ,300           ,300             ,300               ,300                    ,350                                   ,300               ,300                             ,300                                    ,300                                ,80]
+nlambdavec   = [40                  ,40                        ,40                    ,40            ,40              ,40                ,40                     ,45                                    ,40                ,40                              ,40                                     ,40                                 ,20]
+NFPtoInclude = [4                   ,3                         ,3                     ,3             ,3               ,2                 ,2                      ,2                                     ,3                 ,2                               ,2                                      ,2                                  ,3]
+negridvec    = [12                  ,12                        ,12                    ,12            ,12              ,12                ,12                     ,12                                    ,12                ,12                              ,12                                     ,12                                 ,12]
+deltaTvec    = [0.4                 ,0.4                       ,0.4                   ,0.4           ,0.4             ,0.4               ,0.4                    ,0.3                                   ,0.4               ,0.4                             ,0.4                                    ,0.4                                ,0.3]
+simTimevec   = [200                 ,200                       ,200                   ,200           ,200             ,200               ,200                    ,200                                   ,200               ,200                             ,200                                    ,200                                ,200]
+ngaussvec    = [3                   ,3                         ,3                     ,3             ,3               ,3                 ,3                      ,3                                     ,3                 ,3                               ,3                                      ,3                                  ,3]
+QAorQH       = ['QH'                ,'QH'                      ,'QH'                  ,'QH'          ,'QH'            ,'QA'              ,'QA'                   ,'QA'                                  ,'QA'              'QA'                             ,'QA'                                   ,'QA'                               ,'A']
+## 11 stellarators + 1 tokamak
 
-rr  = 0.01 # normalized flux psi/psi_a radial coordinate
+rr  = 0.3 # normalized flux psi/psi_a radial coordinate
 stellsToRun  = [0,1,2,3,4,5,6,7,8,9,10] # select the indices of stellarators from stellDesigns to analyze. Start at 0
 ncores = 8 # number of cpu cores to run GS2
 runGS2 = 1 # 0 - only plot, no GS2, 1 - run GS2
-makeCleanVMEC2GS2 = 0 # 1 - make clean and then make VMEC2GS2, 0 - just make
+makeCleanVMEC2GS2 = 1 # 1 - make clean and then make VMEC2GS2, 0 - just make
 
 vmecGS2interfaceFolder='/Users/rogeriojorge/Dropbox/PostDoc/NearAxisGyrokinetics/ConvergenceTests/VMEC_to_GS2'
 runsPath='/Users/rogeriojorge/scratch/GS2runs/'

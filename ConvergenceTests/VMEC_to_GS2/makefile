@@ -23,7 +23,7 @@ else
 	FC = mpif90
 	# In the next line, we prmote real to double, as gs2 does, using -fdefault-real-8 -fdefault-double-8
 	EXTRA_COMPILE_FLAGS = -I/opt/local/include -ffree-line-length-none -fdefault-real-8 -fdefault-double-8
-	EXTRA_LINK_FLAGS =  -L/opt/local/lib -lnetcdff  -lnetcdf
+	EXTRA_LINK_FLAGS =  -L/opt/local/lib -lnetcdff  -lnetcdf -L/usr/lib
 endif
 
 

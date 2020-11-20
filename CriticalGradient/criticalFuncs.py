@@ -276,24 +276,40 @@ def geomPlot(stells,stellFileX,stellFileNA):
     plt.close()
     return 0
 
-def finalPlot(dataX,dataNA,plotExtent,strLabel,stells):
+def finalPlot(dataX,dataNA,plotExtent,strLabel,stells,rr,aky_max):
     numRows = 1
     numCols = 2
     plt.figure(figsize=(11, 6))
     ax1=plt.subplot(numRows, numCols, 1)
     ax1.set_title("VMEC")
-    im=plt.imshow(dataX, interpolation='hermite', origin='lower', extent=plotExtent)
-    #clb=plt.colorbar(im,fraction=0.046, pad=0.04)
-    plt.clim(np.min([np.min(dataX),np.min(dataNA)]),np.max([np.max(dataX),np.max(dataNA)])) 
-    #clb.ax.set_title(r'$\gamma$ VMEC')
+    im=plt.imshow(dataX, interpolation='hermite', origin='lower', extent=plotExtent, cmap='jet')
+    clb=plt.colorbar(im,fraction=0.046, pad=0.04)
+    if strLabel=='gamma':
+        plt.clim(0,1)
+    elif strLabel=='ky':
+        plt.clim(0,aky_max)
+    else:
+    	plt.clim(np.min([np.min(dataX),np.min(dataNA)]),np.max([np.max(np.where(np.isinf(dataX),-np.Inf,dataX)),np.max(np.where(np.isinf(dataNA),-np.Inf,dataNA))])) 
     plt.xlabel(r'$a/L_n$')
     plt.ylabel(r'$a/L_T$')
 
+    if strLabel=='gamma':
+        clb.ax.set_title(r'$\gamma$')
+    elif strLabel=='omega':
+        clb.ax.set_title(r'$\omega$')
+    elif strLabel=='ky':
+        clb.ax.set_title(r'$k_y$')
+
     ax2=plt.subplot(numRows, numCols, 2)
     ax2.set_title("Near-Axis")
-    im=plt.imshow(dataNA, interpolation='hermite', origin='lower', extent=plotExtent)
+    im=plt.imshow(dataNA, interpolation='hermite', origin='lower', extent=plotExtent, cmap='jet')
     clb=plt.colorbar(im,fraction=0.046, pad=0.04)
-    plt.clim(np.min([np.min(dataX),np.min(dataNA)]),np.max([np.max(dataX),np.max(dataNA)])) 
+    if strLabel=='gamma':
+        plt.clim(0,1)
+    elif strLabel=='ky':
+        plt.clim(0,aky_max)
+    else:
+    	plt.clim(np.min([np.min(dataX),np.min(dataNA)]),np.max([np.max(np.where(np.isinf(dataX),-np.Inf,dataX)),np.max(np.where(np.isinf(dataNA),-np.Inf,dataNA))])) 
     plt.xlabel(r'$a/L_n$')
     plt.ylabel(r'$a/L_T$')
 
@@ -306,7 +322,8 @@ def finalPlot(dataX,dataNA,plotExtent,strLabel,stells):
     elif strLabel=='ky':
         clb.ax.set_title(r'$k_y$')
 
-    plt.savefig(stells+'_max'+strLabel+'.pdf', format='pdf', bbox_inches='tight')
+    matplotlib.rc('font', size=16)
+    plt.savefig('Figures_r'+str(rr)+'/'+stells+'_max'+strLabel+'.pdf', format='pdf', bbox_inches='tight')
     plt.close()
 
 

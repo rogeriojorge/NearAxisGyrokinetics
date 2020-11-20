@@ -7,6 +7,11 @@ paperGrids/*
 gs2grids/*
 GS2/*/
 GS2/gs2
+ConvergenceTestsTEM/gammaPlots/*
+ConvergenceTestsTEM/omegaPlots/*
+ConvergenceTestsTEM/vmec2gs2
+ConvergenceTestsTEM/__pycache__
+ConvergenceTestsTEM/Figures/*
 ConvergenceTests/gammaPlots/*
 ConvergenceTests/omegaPlots/*
 ConvergenceTests/vmec2gs2
@@ -15,6 +20,7 @@ CriticalGradient/__pycache__
 ConvergenceTests/Figures/*
 CriticalGradient/vmec2gs2
 CriticalGradient/*.pdf
+CriticalGradient/Figures*
 vmec2gs2
 gxgrids/*
 

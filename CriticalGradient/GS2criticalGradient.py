@@ -2,31 +2,33 @@
 ################################################
 ################################################
 
-vmecFiles    = ['wistella_midscale' ,'NuhrenbergZille_1988_QHS','HSX_QHS_vacuum_ns201','n4qh.b4.a79a','Drevlak_qh_8_7','li383_1.4m_ns201','n3are_R7.75B5.7_hires','GarabedianQAS2_noCurrentOnAxis_ns201','estell_24_scaled','cfqs_freeBoundary_vacuum_hiRes','st_a34_i32v22_beta_35_scaledAUG_hires']
-stellDesigns = ['WISTELL-A'         ,'NZ1988'                  ,'HSX'                 ,'KuQHS48'     ,'Drevlak'       ,'NCSX'            ,'ARIES-CS'             ,'QAS2'                                ,'ESTELL'          ,'CFQS'                          ,'Henneberg'   ]
-etabar       = [0.791               ,0.157                     ,1.28                  ,0.147         ,0.0899          ,0.408             ,0.0740                 ,0.347                                 ,0.570             ,0.586                           ,0.302         ]
-B0           = [2.54                ,0.205                     ,1.00                  ,1.20          ,3.97            ,1.55              ,5.69                   ,1.79                                  ,1.00              ,0.933                           ,2.41          ]
-nzgridvec    = [300                 ,300                       ,300                   ,300           ,300             ,300               ,300                    ,300                                   ,300               ,300                             ,300           ]
-nlambdavec   = [35                  ,35                        ,35                    ,35            ,35              ,35                ,35                     ,45                                    ,35                ,35                              ,35            ]
-NFPtoInclude = [3                   ,2.5                       ,2.5                   ,2.5           ,2.5             ,2.5               ,2.5                    ,2.5                                   ,2.5               ,1.7                             ,1.7           ]
-negridvec    = [12                  ,12                        ,12                    ,12            ,12              ,12                ,12                     ,12                                    ,12                ,12                              ,12            ]
-deltaTvec    = [0.4                 ,0.4                       ,0.4                   ,0.4           ,0.4             ,0.4               ,0.4                    ,0.3                                   ,0.4               ,0.4                             ,0.4           ]
-simTimevec   = [180                 ,180                       ,180                   ,180           ,180             ,180               ,180                    ,180                                   ,180               ,180                             ,180           ]
-ngaussvec    = [3                   ,3                         ,3                     ,3             ,3               ,3                 ,3                      ,3                                     ,3                 ,3                               ,3             ]
+vmecFiles    = ['wistella_midscale' ,'NuhrenbergZille_1988_QHS','HSX_QHS_vacuum_ns201','n4qh.b4.a79a','Drevlak_qh_8_7','li383_1.4m_ns201','n3are_R7.75B5.7_hires','GarabedianQAS2_noCurrentOnAxis_ns201','estell_24_scaled','cfqs_freeBoundary_vacuum_hiRes','st_a34_i32v22_beta_35_scaledAUG_hires','LandremanSengupta2019_section5.4','ITER']
+stellDesigns = ['WISTELL-A'         ,'NZ1988'                  ,'HSX'                 ,'KuQHS48'     ,'Drevlak'       ,'NCSX'            ,'ARIES-CS'             ,'QAS2'                                ,'ESTELL'          ,'CFQS'                          ,'Henneberg'                            ,'NAQS'                             ,'ITER']
+etabar       = [0.791               ,0.157                     ,1.28                  ,0.147         ,0.0899          ,0.408             ,0.0740                 ,0.347                                 ,0.570             ,0.586                           ,0.302                                  ,1.549                              ,0.115]
+B0           = [2.54                ,0.205                     ,1.00                  ,1.20          ,3.97            ,1.55              ,5.69                   ,1.79                                  ,1.00              ,0.933                           ,2.41                                   ,1.001                              ,5.358]
+nzgridvec    = [250                 ,250                       ,250                   ,250           ,250             ,250               ,250                    ,250                                   ,250               ,250                             ,250                                    ,200                                ,200]
+nlambdavec   = [30                  ,30                        ,30                    ,30            ,30              ,30                ,30                     ,40                                    ,30                ,30                              ,30                                     ,30                                 ,25]
+NFPtoInclude = [3                   ,2.5                       ,2.5                   ,2.5           ,2.5             ,2.5               ,2.5                    ,2.5                                   ,2.5               ,1.7                             ,1.7                                    ,2                                  ,4]
+negridvec    = [11                  ,11                        ,11                    ,11            ,11              ,11                ,11                     ,11                                    ,11                ,11                              ,11                                     ,11                                 ,11]
+deltaTvec    = [0.4                 ,0.4                       ,0.4                   ,0.4           ,0.4             ,0.4               ,0.4                    ,0.3                                   ,0.4               ,0.4                             ,0.4                                    ,0.4                                ,0.4]
+simTimevec   = [180                 ,180                       ,180                   ,180           ,180             ,180               ,180                    ,180                                   ,180               ,180                             ,180                                    ,180                                ,180]
+ngaussvec    = [3                   ,3                         ,3                     ,3             ,3               ,3                 ,3                      ,3                                     ,3                 ,3                               ,3                                      ,3                                  ,3]
+QAorQH       = ['QH'                ,'QH'                      ,'QH'                  ,'QH'          ,'QH'            ,'QA'              ,'QA'                   ,'QA'                                  ,'QA'              'QA'                             ,'QA'                                   ,'QA'                               ,'A']
+## 11 stellarators + 1 tokamak
 
 tprimvec = [0,1,2,3,4,5,6,7,8] # -|grad(T)/T|
 fprimvec = [0,1,2,3,4,5,6,7,8] # |grad(T)/T|\|grad(n)/n|
-aky_min  = 0.01 # minimum ky to consider
-aky_max  = 8.0 # maximum ky to consider
-naky     = 20 # number of ky points
-rr  = 0.01 # normalized flux psi/psi_a radial coordinate
-stellsToRun  = [0,1,2,3,4,5,6,7,8,9,10] # select the indices of stellarators from stellDesigns to analyze. Start at 0
+aky_min  = 0.05 # minimum ky to consider
+aky_max  = 10.0 # maximum ky to consider
+naky     = 24 # number of ky points
+rr  = 0.3 # normalized flux psi/psi_a radial coordinate
+stellsToRun  = [11]#[0,1,2,3,4,5,6,7,8,9,10] # select the indices of stellarators from stellDesigns to analyze. Start at 0
 fractionToConsider = 0.7 # fraction of time fron the simulation period to consider
 
-makeCleanVMEC2GS2 = 0 # 1 - make clean and then make VMEC2GS2, 0 - just make
+makeCleanVMEC2GS2 = 1 # 1 - make clean and then make VMEC2GS2, 0 - just make
 ncores = 8 # number of cpu cores to run GS2
 runGS2 = 1 # 1 -> run gs2; 0 -> don't run gs2 and only plot
-plotFig = 0 # 1 -> save plots in pdf; 0 -> don't
+plotFig = 1 # 1 -> save plots in pdf; 0 -> don't
 
 
 vmecGS2interfaceFolder='/Users/rogeriojorge/Dropbox/PostDoc/NearAxisGyrokinetics/ConvergenceTests/VMEC_to_GS2'
@@ -45,7 +47,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 ## User-defined functions from criticalFuncs.py
-from criticalFuncs import replace, removeGS2, runGS2func, gammabyky
+from criticalFuncs import replace, removeGS2, runGS2func, gammabyky, finalPlot
 
 ######################################
 ## Create executable for VMEC_2_GS2 ##
@@ -67,6 +69,7 @@ if not path.exists(runsPath):
 for i in stellsToRun:
 	# Select grid variables from input vectors
 	stells = stellDesigns[i]
+	print('Stellarator '+stells)
 	nzgrid = nzgridvec[i]
 	nlambda = nlambdavec[i]
 	nfp = NFPtoInclude[i]
@@ -114,8 +117,8 @@ for i in stellsToRun:
 	kysNA = np.zeros(shape=(len(tprimvec),len(fprimvec)))
 	growthRatesX  = np.zeros(shape=(len(tprimvec),len(fprimvec)))
 	growthRatesNA = np.zeros(shape=(len(tprimvec),len(fprimvec)))
-	realFrequenciesX  = []
-	realFrequenciesNA = []
+	realFrequenciesX  = np.zeros(shape=(len(tprimvec),len(fprimvec)))
+	realFrequenciesNA = np.zeros(shape=(len(tprimvec),len(fprimvec)))
 	xdata = []
 	ydata = []
 	for countx, tprim in enumerate(tprimvec):
@@ -133,19 +136,31 @@ for i in stellsToRun:
 			runGS2func(plotFig,currentPath,GSpath,runName,runNameNA,gs2grid,gxgrid,gs2gridNA,gxgridNA,stells,nzgrid,ne,dt,nstep,ngauss,tprim,fprim,aky_min,aky_max,naky,ncores,runGS2)
 			## Compute ky, growth rate and frequency per ky
 			kyX, kyNA, growthRateX, growthRateNA, realFrequencyX, realFrequencyNA = gammabyky(plotFig,currentPath,GSpath,runName,runNameNA,fractionToConsider)
-			kysX[countx,county ]=kyX[growthRateX.index(max(growthRateX))]
-			kysNA[countx,county]=kyNA[growthRateNA.index(max(growthRateNA))]
-			realFrequenciesX[countx,county ]=realFrequencyX[growthRateX.index(max(growthRateX))]
-			realFrequenciesNA[countx,county]=realFrequencyNA[growthRateNA.index(max(growthRateNA))]
-			growthRatesX[countx,county] =np.max(growthRateX)
-			growthRatesNA[countx,county]=np.max(growthRateNA)
+			if np.max(growthRateX)<=0:
+				kysX[countx,county ]= np.inf
+				growthRatesX[countx,county] = 0
+				realFrequenciesX[countx,county ]= np.inf
+			else:
+				kysX[countx,county ]=kyX[growthRateX.index(max(growthRateX))]
+				growthRatesX[countx,county] =np.max(growthRateX)
+				realFrequenciesX[countx,county ]=realFrequencyX[growthRateX.index(max(growthRateX))]
+			if np.max(growthRateNA)<=0:
+				kysNA[countx,county] = np.inf
+				growthRatesNA[countx,county] = 0
+				realFrequenciesNA[countx,county]= np.inf
+			else:
+				kysNA[countx,county]=kyNA[growthRateNA.index(max(growthRateNA))]
+				growthRatesNA[countx,county]=np.max(growthRateNA)
+				realFrequenciesNA[countx,county]=realFrequencyNA[growthRateNA.index(max(growthRateNA))]
 			xdata.append(fprim)
 			ydata.append(tprim)
 	if plotFig==1:
 		## Plot maximum growth rate and corresponding ky for each fprim and tprim
 		print('Plotting max gamma and ky for each tprim and fprim')
+		if not path.exists('Figures_r'+str(rr)):
+			os.mkdir('Figures_r'+str(rr))
 		plotExtent=[min(fprimvec),max(fprimvec),min(tprimvec),max(tprimvec)]
-		finalPlot(growthRatesX,growthRatesNA,plotExtent,'gamma',stells)
-		finalPlot(realFrequenciesX,realFrequenciesNA,plotExtent,'omega',stells)
-		finalPlot(kysX,kysNA,plotExtent,'ky',stells)
+		finalPlot(growthRatesX,growthRatesNA,plotExtent,'gamma',stells,rr,aky_max)
+		finalPlot(realFrequenciesX,realFrequenciesNA,plotExtent,'omega',stells,rr,aky_max)
+		finalPlot(kysX,kysNA,plotExtent,'ky',stells,rr,aky_max)
 

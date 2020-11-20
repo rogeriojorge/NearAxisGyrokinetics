@@ -6,8 +6,9 @@ max_n_to_plot = 3
 
 N_phi = 300
 
-filename = '/Users/rogeriojorge/Dropbox/PostDoc/Near Axis Gyrokinetics/equilibria/boozmn_HSX_QHS_vacuum_ns201.nc'
-max_s_for_fit = 0.3
+filename = '/Users/rogeriojorge/Dropbox/PostDoc/NearAxisGyrokinetics/equilibria/boozmn_iter_sc4_neg_axi.nc'
+#filename = '/Users/rogeriojorge/Dropbox/PostDoc/NearAxisGyrokinetics/equilibria/boozmn_HSX_QHS_vacuum_ns201.nc'
+max_s_for_fit = 0.5
 
 import numpy as np
 from scipy.io import netcdf
@@ -26,7 +27,7 @@ ns = f.variables['ns_b'][()]
 nfp = f.variables['nfp_b'][()]
 nNormal  = nfp
 Psi = f.variables['phi_b'][()]
-Psi_a = Psi[-1]
+Psi_a = np.abs(Psi[-1])
 
 f.close()
 
@@ -136,9 +137,9 @@ B20 *= sqrt_s_over_r*sqrt_s_over_r
 B2c *= sqrt_s_over_r*sqrt_s_over_r
 B2s *= sqrt_s_over_r*sqrt_s_over_r
 
-eta_bar = np.mean(B1c) / BBar
+etabar = np.divide(np.mean(B1c),BBar)
 print('Nphi =',N_phi)
-print('eta_bar: ',eta_bar)
+print('eta_bar: '+str(etabar))
 print('B0: ',BBar)
 print('sqrt_s_over_r: ',sqrt_s_over_r)
 print('B1c mean: ',np.mean(B1c))

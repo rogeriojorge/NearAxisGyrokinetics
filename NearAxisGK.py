@@ -2,15 +2,20 @@
 ################################################
 ################################################
 
-number_of_field_periods_to_include = 5
-normalizedfluxvec = [0.01]#,0.05,0.1,0.3]
+number_of_field_periods_to_include = 2
+normalizedfluxvec = [0.01,0.05,0.1,0.3,0.5,0.8]
 N_phi = 200 #Number of points for B0, B1 and B2 calculation and plotting
 plotSave = 1 #Spend time plotting results or not
 
-stellDesigns=['WISTELL-A'         ,'NZ1988'                  ,'HSX'                 ,'KuQHS48'     ,'Drevlak'       ,'NCSX'            ,'ARIES-CS'             ,'QAS2'                                ,'ESTELL'          ,'CFQS'                          ,'Henneberg'   ]
-etab        =[0.01                ,0.155                     ,1.33                  ,0.147         ,0.0861          ,0.403             ,0.0740                 ,0.341                                 ,0.563             ,0.569                           ,0.269         ]
-Nrotations  =[4                   ,-6                        ,4                     ,4             ,-5              ,0                 ,0                      ,0                                     ,0                 ,0                               ,0             ]
-vmecFiles   =['wistella_midscale' ,'NuhrenbergZille_1988_QHS','HSX_QHS_vacuum_ns201','n4qh.b4.a79a','Drevlak_qh_8_7','li383_1.4m_ns201','n3are_R7.75B5.7_hires','GarabedianQAS2_noCurrentOnAxis_ns201','estell_24_scaled','cfqs_freeBoundary_vacuum_hiRes','st_a34_i32v22_beta_35_scaledAUG_hires']
+#stellDesigns=['WISTELL-A'         ,'NZ1988'                  ,'HSX'                 ,'KuQHS48'     ,'Drevlak'       ,'NCSX'            ,'ARIES-CS'             ,'QAS2'                                ,'ESTELL'          ,'CFQS'                          ,'Henneberg'                            ,'NAQS']
+#etab        =[0.791               ,0.155                     ,1.33                  ,0.147         ,0.0861          ,0.403             ,0.074                  ,0.341                                 ,0.563             ,0.569                           ,0.269                                  ,0.901]
+#Nrotations  =[4                   ,-6                        ,4                     ,4             ,-5              ,0                 ,0                      ,0                                     ,0                 ,0                               ,0                                      ,-4]
+#vmecFiles   =['wistella_midscale' ,'NuhrenbergZille_1988_QHS','HSX_QHS_vacuum_ns201','n4qh.b4.a79a','Drevlak_qh_8_7','li383_1.4m_ns201','n3are_R7.75B5.7_hires','GarabedianQAS2_noCurrentOnAxis_ns201','estell_24_scaled','cfqs_freeBoundary_vacuum_hiRes','st_a34_i32v22_beta_35_scaledAUG_hires','LandremanSenguptaPlunk_section5.2']
+
+stellDesigns=['NAQS']
+etab        =[1.549]
+Nrotations  =[4]
+vmecFiles   =['LandremanSengupta2019_section5.4']
 
 equilibriaFolder='equilibria/'
 gs2gridsFolder='gs2grids/'
@@ -49,7 +54,7 @@ def obtainB0B1B2(boozFile,nNormal):
 	ns = f.variables['ns_b'][()]
 	nfp = f.variables['nfp_b'][()]
 	Psi = f.variables['phi_b'][()]
-	Psi_a = Psi[-1]
+	Psi_a = np.abs(Psi[-1])
 	iotaVMECt=f.variables['iota_b'][()][1]
 	f.close()
 	s_full = np.linspace(0,1,ns)
@@ -150,7 +155,7 @@ if plotSave==0:# path.exists(toPaperFolder+'B0QSEquilibria1.pdf'):
 	None
 else:
 	print("Plotting Near-Axis Bfields for the designs")
-	plotsIn1fig=5;plotfontSize=20;legendfontSize=14;figSize1=7.2;figSize2=4.0;
+	plotsIn1fig=6;plotfontSize=20;legendfontSize=14;figSize1=7.2;figSize2=4.0;
 	matplotlib.rc('font', size=plotfontSize);matplotlib.rc('axes', titlesize=plotfontSize);
 	plt.figure(figsize=(figSize1,figSize2));i=0;
 	for stells in stellDesigns:
@@ -244,6 +249,8 @@ else:
 			f = netcdf.netcdf_file(equilibria[i],'r',mmap=False)
 			iota0 = f.variables['iotaf'][()][1]
 			nfp   = f.variables['nfp'][()]
+			#print('./test_vmec_to_gs2_geometry_interface',eq,gs2_output[i],geometry_output[i],str(nfp*number_of_field_periods_to_include/abs(iota0)),str(desired_normalized_toroidal_flux),gx_output[i])
+			#exit()
 			process = subprocess.call(['./test_vmec_to_gs2_geometry_interface',eq,gs2_output[i],geometry_output[i],str(nfp*number_of_field_periods_to_include/abs(iota0)),str(desired_normalized_toroidal_flux),gx_output[i]], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			i=i+1
 
@@ -330,7 +337,9 @@ else:
 print("Running Mathematica")
 i=0
 for eq in equilibria:
-	bashCommand = "wolframscript -noprompt -script grid_NearAxis.wls "+stellDesigns[i]+" "+papergridsFolder+" "+eq+" "+booz[i]+" "+str(abs(eta_barvec[i]))+" "+figuresFolder+" "+gs2gridsFolder+" "+gxgridsFolder+" "+MathDataFolder+" "+toPaperFolder+" "+str(plotSave)+" "+str(BBarvec[i])+" "+str(i+1)+" "+str(len(normalizedfluxvec))
+	sign=1
+	#if stellDesigns[i]=='NAQS': sign=-1
+	bashCommand = "wolframscript -noprompt -script grid_NearAxis.wls "+stellDesigns[i]+" "+papergridsFolder+" "+eq+" "+booz[i]+" "+str(sign*abs(eta_barvec[i]))+" "+figuresFolder+" "+gs2gridsFolder+" "+gxgridsFolder+" "+MathDataFolder+" "+toPaperFolder+" "+str(plotSave)+" "+str(BBarvec[i])+" "+str(i+1)+" "+str(len(normalizedfluxvec))
 	for rr in normalizedfluxvec:
 		bashCommand = bashCommand+" "+str(rr)
 	print(stellDesigns[i])
@@ -339,7 +348,7 @@ for eq in equilibria:
 	print("Working...", end='', flush=True)
 	#print(bashCommand)
 	#exit()
-	#output = subprocess.call(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	output = subprocess.call(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	print(" Success!")
 	i=i+1
 

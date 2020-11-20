@@ -9,7 +9,8 @@ PacletInstall["MaTeX-1.7.6.paclet",IgnoreVersion->True];
 SetOptions[$Output, FormatType->OutputForm];
 currentPath=DirectoryName @ $InputFileName;
 SetDirectory[currentPath];
-pi = N[Pi,10];
+pi  = N[Pi,10];
+mu0 = 4*pi*10^(-7)
 
 nperiod=1
 drhodpsi=1
@@ -41,12 +42,14 @@ If[FileExistsQ[saveStellFile],
 	nz = 2*ntgrid; x = 0.08; y = 0.0; alpha0 = pi;
 	raxis = Import[VMECfileIn, {"Datasets", "raxis_cc"}];
 	zaxis = Import[VMECfileIn, {"Datasets", "zaxis_cs"}];
-	R0 = raxis[[1]]; eR = raxis[[2 ;; 5]]; eZ = zaxis[[2 ;; 5]];
+	R0 = raxis[[1]]; eR = If[Length[raxis] == 1, 0, raxis[[2 ;; 5]]]; eZ = If[Length[zaxis] == 1, 0, zaxis[[2 ;; 5]]];
 	NFP = Import[VMECfileIn, {"Datasets", "nfp"}];
 	Aminor = Import[VMECfileIn, {"Datasets", "Aminor_p"}];
-	phiEDGE = Last[Import[VMECfileIn, {"Datasets", "phi"}]]/(2 pi);
+	phiEDGE = Abs@Last[Import[VMECfileIn, {"Datasets", "phi"}]]/(2 pi);
 	(*B0 = Import[BOOZfileIn, {"Datasets", "bmnc_b"}][[1, 1]];*)
-	I2oB0 = 0.;
+	ctor = Import[VMECfileIn, {"Datasets", "ctor"}];
+	I2oB0 = (mu0*ctor)/(2*2*pi*phiEDGE);
+	Print["I2oB0="<>ToString[I2oB0]];
 	nIts = 10; nLineS = 4; tol = 10^-6;
 	sigmaIn = 0.1 Cos[NFP t];
 	nzMinMax = 0.0; (*number of 2pi additions on theta*)
@@ -173,9 +176,9 @@ Table[
 	bmagNew[theta_,j]     = (Aminor^2 B0 (1 + rVMEC[j] etabar Cos[theta]))/(2 phiEDGE);
 	gradparNew[theta_,j]  = ((2 Aminor pi (1 + rVMEC[j] etabar Cos[theta]))/Laxis)/(sprimeFunc[(alphaVMEC[j]-theta)/(iota-nNormal)]*2*pi/Laxis);
 	gds2New[theta_,j]     = ((Aminor^2) B0 )/(2 phiEDGE) ((etabar^2 Cos[theta]^2)/curvFunc[Phi[theta,j]]^2 + (curvFunc[Phi[theta,j]]^2 (Sin[theta] + Cos[theta] sigma[Phi[theta,j]])^2)/etabar^2);
-	gds21New[theta_,j]    = -1/(2 phiEDGE) Aminor^2  shat[j] ((B0 etabar^2 Cos[theta] Sin[theta])/curvFunc[Phi[theta,j]]^2 + 1/etabar^2 B0 curvFunc[Phi[theta,j]]^2 (Sin[theta] + Cos[theta] sigma[Phi[theta,j]]) (-Cos[theta] + Sin[theta] sigma[Phi[theta,j]]));
+	gds21New[theta_,j]    = -Sign[Last[Import[VMECfileIn, {"Datasets", "phi"}]]]/(2 phiEDGE) Aminor^2  shat[j] ((B0 etabar^2 Cos[theta] Sin[theta])/curvFunc[Phi[theta,j]]^2 + 1/etabar^2 B0 curvFunc[Phi[theta,j]]^2 (Sin[theta] + Cos[theta] sigma[Phi[theta,j]]) (-Cos[theta] + Sin[theta] sigma[Phi[theta,j]]));
 	gds22New[theta_,j]    = (Aminor^2 B0 shat[j]^2 (etabar^4 Sin[theta]^2 + curvFunc[Phi[theta,j]]^4 (Cos[theta] - Sin[theta] sigma[Phi[theta,j]])^2))/(2 phiEDGE etabar^2 curvFunc[Phi[theta,j]]^2);
-	gbdriftNew[theta_,j]  = (2 Sqrt[2] etabar Cos[theta])/Sqrt[B0/phiEDGE] (1 - 0 2 rVMEC[j] etabar Cos[theta]); 
+	gbdriftNew[theta_,j]  = Sign[Last[Import[VMECfileIn, {"Datasets", "phi"}]]]*(2 Sqrt[2] etabar Cos[theta])/Sqrt[B0/phiEDGE] (1 - 0 2 rVMEC[j] etabar Cos[theta]); 
 	cvdriftNew[theta_,j]  = gbdriftNew[theta,j];
 	gbdrift0New[theta_,j] = -2 Sqrt[2] Sqrt[phiEDGE/B0] shat[j] etabar Sin[theta] (1 - 0 2 rVMEC[j] etabar Cos[theta]); 
 	cvdrift0New[theta_,j] = gbdrift0New[theta,j];
@@ -261,7 +264,6 @@ Table[
 	DumpSave[MathDataFolder<>"/MathData"<>stell<>"r"<>ToString@normalizedtorFlux[j]<>".mx", "Global`"];
 	*)
 ,{j,1,nradius}];
-
 If[plotSave==1,
 
 phiHT						 = Import[MathDataFolder<>"phiH.txt","Table"][[stellN]];
@@ -294,25 +296,31 @@ rplotgradAlphaPsi=Show[
 		  		  , Evaluate@PlotOptions2[MaTeX["\\nabla \\psi \\cdot \\nabla \\alpha",Magnification->textMagnification]]];
 rplotBcrossGradBdotGradAlphaOB3=Show[
 									 ListLinePlot[Evaluate[Table[Transpose@{tgridVMEC[j], BcrossGradBdotGradAlphaOB3GK[j]},{j,1,nradius}]](*,PlotLegends->legVMEC*)],
-									 Plot[Evaluate[Table[BcrossGradBdotGradAlphaOB3NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1], zmaxNA[1]},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)],
+									 Plot[Evaluate[Table[BcrossGradBdotGradAlphaOB3NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1], zmaxNA[1]},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)]
+									 (*,
 									 Plot[BcrossGradBdGradAlphaMixed[phiA[z]], {z, zminNA[1], zmaxNA[1]},PlotStyle->{Magenta, DotDashed}(*,PlotLegends->{"Near-Axis"}*)]
+									*)
 			  					, Evaluate@PlotOptions2[MaTeX["{\\sqrt \\psi} \\mathbf B \\times \\nabla B \\cdot \\nabla \\alpha/B^3",Magnification->textMagnification]]];
 rplotBcrossGradBdotGradPsiOB3=Show[
 								   ListLinePlot[Evaluate[Table[Transpose@{tgridVMEC[j], BcrossGradBdotGradPsiOB3GK[j]},{j,1,nradius}]](*,PlotLegends->legVMEC*)],
-								   Plot[Evaluate[Table[BcrossGradBdotGradPsiOB3NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1], zmaxNA[1]},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)],
+								   Plot[Evaluate[Table[BcrossGradBdotGradPsiOB3NA[thetaBooz[z,j],j],{j,1,1}]], {z, zminNA[1], zmaxNA[1]},PlotStyle->Black(*,PlotLegends->{"Near-Axis"}*)]
+								   (*,
 								   Plot[BcrossGradBdGradPsiMixed[phiA[z]], {z, zminNA[1], zmaxNA[1]},PlotStyle->{Magenta,DotDashed}(*,PlotLegends->{"Near-Axis"}*)]
+								   *)
 			  				  , Evaluate@PlotOptions2[MaTeX["{\\sqrt \\psi}^{-1}\\mathbf B \\times \\nabla B \\cdot \\nabla \\psi/B^3",Magnification->textMagnification]]];
 
-legFont[tit_] = Style[tit, 19, FontFamily -> "Latin Modern Math"];
+legFont[tit_] = Style[tit, 17, FontFamily -> "Latin Modern Math"];
 paperLeg = LineLegend[
-  {Directive[ColorData[97, "ColorList"][[1]], Dashed], Directive[ColorData[97, "ColorList"][[2]], Dashed],
-  Directive[ColorData[97, "ColorList"][[3]], Dashed], Directive[ColorData[97, "ColorList"][[4]], Dashed],
+  {Black,Directive[ColorData[97, "ColorList"][[1]], Dashed], Directive[ColorData[97, "ColorList"][[2]], Dashed],
+  Directive[ColorData[97, "ColorList"][[3]], Dashed], Directive[ColorData[97, "ColorList"][[4]], Dashed], ColorData[97, "ColorList"][[5]],
+  ColorData[97, "ColorList"][[6]],White,
   ColorData[97, "ColorList"][[1]], ColorData[97, "ColorList"][[2]], ColorData[97, "ColorList"][[3]],
-  ColorData[97, "ColorList"][[4]], Black, Directive[Magenta, DotDashed]}
-  , {legFont["Near-Axis s=0.01"], legFont["s=0.05"], legFont["s=0.1"],
-     legFont["s=0.3"], legFont[stell <> " s=0.01"], legFont["s=0.05"],
-     legFont["s=0.1"], legFont["s=0.3"],  legFont["Near-Axis"],  legFont["Mixed"]}
-  , LegendLayout -> {"Row", 3}
+  ColorData[97, "ColorList"][[4]], ColorData[97, "ColorList"][[5]],
+  ColorData[97, "ColorList"][[6]](*, Directive[Magenta, DotDashed]*)}
+  , {legFont["Near-Axis"],legFont[(*"Near-Axis *)"s=0.01"], legFont["s=0.05"], legFont["s=0.1"],
+     legFont["s=0.3"], legFont["s=0.5"], legFont["s=0.8"], legFont[stell],legFont[(*stell <> *)"s=0.01"], legFont["s=0.05"],
+     legFont["s=0.1"], legFont["s=0.3"], legFont["s=0.5"], legFont["s=0.8"] (*,  legFont["Mixed"]*)}
+  , LegendLayout -> {"Row", 2}
  ];
 
 paperPlot=Grid[{

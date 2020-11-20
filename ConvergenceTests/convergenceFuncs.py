@@ -12,7 +12,7 @@ import matplotlib.cm as cm
 from matplotlib.font_manager import FontProperties
 import pickle
 
-plotfontSize=20;figSize1=7.5;figSize2=4.0;legendfontSize=14;annotatefontSize=8
+plotfontSize=20;figSize1=7.5;figSize2=4.0;legendfontSize=14;annotatefontSize=7
 matplotlib.rc('font', size=plotfontSize);matplotlib.rc('axes', titlesize=plotfontSize)
 matplotlib.rc('text', usetex=True);matplotlib.rcParams['text.latex.preamble']=r"\usepackage{amsmath}"
 
@@ -167,7 +167,7 @@ def getgamma(stellFile):
 		plt.plot(t, poly(t),'-', label=r'fit - $\gamma = $'+str(GrowthRate))
 		##############
 		plt.legend(loc=0,fontsize=legendfontSize)
-		plt.xlabel(r'$t$');plt.ylabel(r'$\ln |\phi|^2$')
+		plt.xlabel(r'$t$');plt.ylabel(r'$\ln |\hat \phi|^2$')
 		plt.subplots_adjust(left=0.16, bottom=0.19, right=0.98, top=0.97)
 		plt.savefig(stellFile+'_phi2.pdf', format='pdf')
 		plt.close()
@@ -185,10 +185,10 @@ def eigenPlot(stellFile):
     phiR = (y[0,0,:,0]*phiR0+y[0,0,:,1]*phiI0)/phi02
     phiI = (y[0,0,:,1]*phiR0-y[0,0,:,0]*phiI0)/phi02
     ##############
-    plt.plot(x, phiR, label=r'Re($\phi/\phi_0$)')
-    plt.plot(x, phiI, label=r'Im($\phi/\phi_0$)')
+    plt.plot(x, phiR, label=r'Re($\hat \phi/\hat \phi_0$)')
+    plt.plot(x, phiI, label=r'Im($\hat \phi/\hat \phi_0$)')
     ##############
-    plt.xlabel(r'$\theta$');plt.ylabel(r'$\phi$')
+    plt.xlabel(r'$\theta$');plt.ylabel(r'$\hat \phi$')
     plt.legend(loc="upper right")
     plt.subplots_adjust(left=0.16, bottom=0.19, right=0.98, top=0.93)
     plt.savefig(stellFile+'_eigenphi.pdf', format='pdf')
@@ -261,7 +261,7 @@ def geomPlot(stells,stellFileX,stellFileNA):
 
 ###### Function to plot convergence on growth rates and frequencies for each stellarator
 def gammaPlot(growthRateX,growthRateNA,strLabel,legendTXT,stells,rr,ngauss,dt,nstep,ne,nzgrid,nlambda,nfp):
-	plotfontSize=14;figSize1=5.7;figSize2=4.2;titleFontSize=16
+	plotfontSize=14;figSize1=5.7;figSize2=4.3;titleFontSize=16
 	matplotlib.rc('font', size=plotfontSize);matplotlib.rc('axes', titlesize=plotfontSize)
 	fig, ax = plt.subplots(figsize=(figSize1,figSize2))
 	colors = cm.rainbow(np.linspace(0, 1, len(legendTXT)))
@@ -270,10 +270,13 @@ def gammaPlot(growthRateX,growthRateNA,strLabel,legendTXT,stells,rr,ngauss,dt,ns
 	fontP = FontProperties()
 	fontP.set_size('xx-small')
 	legend=ax.legend(bbox_to_anchor=(1.01, 1), loc='upper left', prop=fontP)
-	fig.suptitle(stells, fontsize=titleFontSize)
+	#fig.suptitle(stells, fontsize=titleFontSize)
+	fig.suptitle(r's='+str(rr), fontsize=titleFontSize)
 	ax.plot([0, 1], [0, 1], color='r', ls='--')
-	plt.ylim(0.0,1.01*max(max(growthRateX),max(growthRateNA)))
-	plt.xlim(0.0,1.01*max(max(growthRateX),max(growthRateNA)))
+	#plt.ylim(0.99*min(min(growthRateX),min(growthRateNA)),1.01*max(max(growthRateX),max(growthRateNA)))
+	plt.ylim(0.210,0.230)
+	#plt.xlim(0.99*min(min(growthRateX),min(growthRateNA)),1.01*max(max(growthRateX),max(growthRateNA)))
+	plt.xlim(0.210,0.230)
 	plt.gca().set_aspect('equal', adjustable='box')
 	if strLabel=='gamma':
 		plt.xlabel(r'Near-Axis $\gamma$');plt.ylabel(r'VMEC $\gamma$')
@@ -295,7 +298,7 @@ def gammaPlot(growthRateX,growthRateNA,strLabel,legendTXT,stells,rr,ngauss,dt,ns
 ###### Function to plot final converged growth rates and frequencies for all stellarators (base case)
 def finalGammaPlot(gammaNA,gammaX,strLabel,stellsToRun,stellDesigns,rr):
 	plotfontSize=16;annotatefontSize=8;figSize1=5.8;figSize2=5.2
-	matplotlib.rc('font', size=plotfontSize);matplotlib.rc('axes', titlesize=plotfontSize);
+	matplotlib.rc('font', size=plotfontSize);matplotlib.rc('axes', titlesize=plotfontSize)
 	fig, ax = plt.subplots(figsize=(figSize1,figSize2))
 	ax.scatter(gammaNA,gammaX)
 	for count, i in enumerate(stellsToRun):
@@ -318,13 +321,14 @@ def finalGammaPlot(gammaNA,gammaX,strLabel,stellsToRun,stellDesigns,rr):
 def allGammaPlot(gammaNA,gammaX,strLabel,stellsToRun,stellDesigns,rr):
 	with open(strLabel+'.pickle','rb') as fid:
 		ax=pickle.load(fid)
+		annotatefontSize=10
 	for count, i in enumerate(stellsToRun):
-		ax.annotate(stellDesigns[i], (gammaNA[count],gammaX[count]), fontsize=annotatefontSize)
+		ax.annotate(stellDesigns[i], (1.01*gammaNA[count],1.01*gammaX[count]), fontsize=annotatefontSize)
 	ax.plot([0, 1], [0, 1], color='r', ls='--')
 	if strLabel=='gamma':
 		plt.xlabel(r'Near-Axis $\gamma$');plt.ylabel(r'VMEC $\gamma$')
-		plt.ylim(0.95*min(min(gammaNA),min(gammaX)),1.06*max(max(gammaNA),max(gammaX)))
-		plt.xlim(0.95*min(min(gammaNA),min(gammaX)),1.06*max(max(gammaNA),max(gammaX)))
+		plt.ylim(0*0.95*min(min(gammaNA),min(gammaX)),0.5+0*1.1*max(max(gammaNA),max(gammaX)))
+		plt.xlim(0*0.95*min(min(gammaNA),min(gammaX)),0.5+0*1.1*max(max(gammaNA),max(gammaX)))
 	elif strLabel=='omega':
 		plt.xlabel(r'Near-Axis $\omega$');plt.ylabel(r'VMEC $\omega$')
 		plt.ylim(-0.005,1.1*max(max(gammaNA),max(gammaX)))
@@ -334,6 +338,7 @@ def allGammaPlot(gammaNA,gammaX,strLabel,stellsToRun,stellDesigns,rr):
 	fontP.set_size('xx-small')
 	ax.legend(bbox_to_anchor=(1.01, 1), loc='upper left', prop=fontP)
 	#fig.suptitle(stells, fontsize=titleFontSize)
-	plt.subplots_adjust(left=-0.07, bottom=0.16, right=1.0, top=0.96)
+	plt.title(r's='+str(rr), fontsize=16)
+	plt.subplots_adjust(left=-0.07, bottom=0.14, right=1.0, top=0.94)
 	plt.savefig('all'+strLabel+'Stells_r'+str(rr)+'.pdf', format='pdf')
 	plt.close()
