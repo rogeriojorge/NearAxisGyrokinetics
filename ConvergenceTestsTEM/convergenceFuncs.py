@@ -18,7 +18,7 @@ matplotlib.rc('text', usetex=True);matplotlib.rcParams['text.latex.preamble']=r"
 
 
 ###### RUN GS2 and diagnostics
-def runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath):
+def runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript):
 	# Create folders
 	if not path.exists(runsPath+stells):
 		os.mkdir(runsPath+stells)
@@ -50,9 +50,10 @@ def runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,n
 	gs2gridNA   = 'gs2_NAgrid'+stells+'r'+str(rr)+'nzgrid'+str(nzgrid)+'nlambda'+str(nlambda)+'nfp'+str(nfp)+'.out'
 	gxgridNA    = 'gx_NAgrid' +stells+'r'+str(rr)+'nzgrid'+str(nzgrid)+'nlambda'+str(nlambda)+'nfp'+str(nfp)+'.out'
 	sigmaFile   = runsPath+stells+'/Math'+stells+'.mx'
-	bashCommand = wolframScript+" -noprompt -script solveSigma.m "+str(etab)+" "+str(b0)+" "+equilibrium+" "+stells+" "+GSpath+geom2math+" "+sigmaFile+" "+GSpath+gs2gridNA+" "+GSpath+gxgridNA
+	#bashCommand = wolframScript+" -noprompt -script solveSigma.m "+str(etab)+" "+str(b0)+" "+equilibrium+" "+stells+" "+GSpath+geom2math+" "+sigmaFile+" "+GSpath+gs2gridNA+" "+GSpath+gxgridNA
+	bashCommand = sigmaScript+" "+str(etab)+" "+str(b0)+" "+equilibrium+" "+stells+" "+GSpath+geom2math+" "+sigmaFile+" "+GSpath+gs2gridNA+" "+GSpath+gxgridNA
 	if not path.exists(GSpath+gs2gridNA):
-		print(' Running Mathematica')
+		print(' Running Near-Axis grid')
 		output = subprocess.call(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	######################################
 	## Run GS2 to check for convergence ##
@@ -90,21 +91,25 @@ def runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,n
 	# Remove spurious files
 	removeGS2(os.getcwd())
 	# Plot eigenfunctions
-	if not path.exists(runName[:-3]+".out.nc_eigenphi.pdf"):
-		print(' Plotting eigenfunctions')
-		eigenPlot(runName[:-3]+".out.nc")
-	if not path.exists(runNameNA[:-3]+".out.nc_eigenphi.pdf"):
-		eigenPlot(runNameNA[:-3]+".out.nc")
-	# Compare Near-Axis and VMEC's geometric coefficients
-	if not path.exists('../'+stells+"_geom.pdf"):
-		print(' Plotting geometric coefficients')
-		geomPlot(stells,runName[:-3]+".out.nc",runNameNA[:-3]+".out.nc")
-		move(stells+'_geom.pdf','../'+stells+'_geom.pdf')
-	############################
-	os.chdir(currentPath)
-    ############################
-	print(' Computing growth rate and frequency')
-	return getgamma(GSpath+'gs2/'+runName[:-3]+".out.nc"), getgamma(GSpath+'gs2/'+runNameNA[:-3]+".out.nc")
+	if figPlot==1:
+		if not path.exists(runName[:-3]+".out.nc_eigenphi.pdf"):
+			print(' Plotting eigenfunctions')
+			eigenPlot(runName[:-3]+".out.nc")
+		if not path.exists(runNameNA[:-3]+".out.nc_eigenphi.pdf"):
+			eigenPlot(runNameNA[:-3]+".out.nc")
+		# Compare Near-Axis and VMEC's geometric coefficients
+		if not path.exists('../'+stells+"_geom.pdf"):
+			print(' Plotting geometric coefficients')
+			geomPlot(stells,runName[:-3]+".out.nc",runNameNA[:-3]+".out.nc")
+			move(stells+'_geom.pdf','../'+stells+'_geom.pdf')
+		############################
+		os.chdir(currentPath)
+		############################
+		print(' Computing growth rate and frequency')
+		return getgamma(GSpath+'gs2/'+runName[:-3]+".out.nc"), getgamma(GSpath+'gs2/'+runNameNA[:-3]+".out.nc")
+	else:
+		os.chdir(currentPath)
+		return [0,0]
 
 
 ## Function to replace text in files
@@ -319,7 +324,7 @@ def finalGammaPlot(gammaNA,gammaX,strLabel,stellsToRun,stellDesigns,rr):
 
 ###### Function to plot final converged growth rates and frequencies for all stellarators (all cases)
 def allGammaPlot(gammaNA,gammaX,strLabel,stellsToRun,stellDesigns,rr):
-	with open(strLabel+'.pickle','rb') as fid:
+	with open(str(rr)+strLabel+'.pickle','rb') as fid:
 		ax=pickle.load(fid)
 		annotatefontSize=10
 	for count, i in enumerate(stellsToRun):

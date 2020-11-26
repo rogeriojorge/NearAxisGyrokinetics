@@ -8,14 +8,19 @@ N_phi = 200 #Number of points for B0, B1 and B2 calculation and plotting
 plotSave = 1 #Spend time plotting results or not
 
 #stellDesigns=['WISTELL-A'         ,'NZ1988'                  ,'HSX'                 ,'KuQHS48'     ,'Drevlak'       ,'NCSX'            ,'ARIES-CS'             ,'QAS2'                                ,'ESTELL'          ,'CFQS'                          ,'Henneberg'                            ,'NAQS']
-#etab        =[0.791               ,0.155                     ,1.33                  ,0.147         ,0.0861          ,0.403             ,0.074                  ,0.341                                 ,0.563             ,0.569                           ,0.269                                  ,0.901]
-#Nrotations  =[4                   ,-6                        ,4                     ,4             ,-5              ,0                 ,0                      ,0                                     ,0                 ,0                               ,0                                      ,-4]
-#vmecFiles   =['wistella_midscale' ,'NuhrenbergZille_1988_QHS','HSX_QHS_vacuum_ns201','n4qh.b4.a79a','Drevlak_qh_8_7','li383_1.4m_ns201','n3are_R7.75B5.7_hires','GarabedianQAS2_noCurrentOnAxis_ns201','estell_24_scaled','cfqs_freeBoundary_vacuum_hiRes','st_a34_i32v22_beta_35_scaledAUG_hires','LandremanSenguptaPlunk_section5.2']
+#etab        =[0.791               ,0.155                     ,1.33                  ,0.147         ,0.0861          ,0.403             ,0.074                  ,0.341                                 ,0.563             ,0.569                           ,0.269                                  ,1.549]
+#Nrotations  =[4                   ,-6                        ,4                     ,4             ,-5              ,0                 ,0                      ,0                                     ,0                 ,0                               ,0                                      ,4]
+#vmecFiles   =['wistella_midscale' ,'NuhrenbergZille_1988_QHS','HSX_QHS_vacuum_ns201','n4qh.b4.a79a','Drevlak_qh_8_7','li383_1.4m_ns201','n3are_R7.75B5.7_hires','GarabedianQAS2_noCurrentOnAxis_ns201','estell_24_scaled','cfqs_freeBoundary_vacuum_hiRes','st_a34_i32v22_beta_35_scaledAUG_hires','LandremanSengupta2019_section5.4']
 
 stellDesigns=['NAQS']
 etab        =[1.549]
 Nrotations  =[4]
 vmecFiles   =['LandremanSengupta2019_section5.4']
+
+#stellDesigns=['WISTELL-A']
+#etab        =[0.791]
+#Nrotations  =[4]
+#vmecFiles   =['wistella_midscale']
 
 equilibriaFolder='equilibria/'
 gs2gridsFolder='gs2grids/'

@@ -284,12 +284,12 @@ def finalPlot(dataX,dataNA,plotExtent,strLabel,stells,rr,aky_max):
     ax1.set_title("VMEC")
     im=plt.imshow(dataX, interpolation='hermite', origin='lower', extent=plotExtent, cmap='jet')
     clb=plt.colorbar(im,fraction=0.046, pad=0.04)
-    if strLabel=='gamma':
-        plt.clim(0,1)
-    elif strLabel=='ky':
-        plt.clim(0,aky_max)
-    else:
-    	plt.clim(np.min([np.min(dataX),np.min(dataNA)]),np.max([np.max(np.where(np.isinf(dataX),-np.Inf,dataX)),np.max(np.where(np.isinf(dataNA),-np.Inf,dataNA))])) 
+    #if strLabel=='gamma':
+    #    plt.clim(0,1)
+    #elif strLabel=='ky':
+    #    plt.clim(0,aky_max)
+    #else:
+    plt.clim(np.min([np.min(dataX),np.min(dataNA)]),np.max([np.max(np.where(np.isinf(dataX),-np.Inf,dataX)),np.max(np.where(np.isinf(dataNA),-np.Inf,dataNA))])) 
     plt.xlabel(r'$a/L_n$')
     plt.ylabel(r'$a/L_T$')
 
@@ -304,12 +304,12 @@ def finalPlot(dataX,dataNA,plotExtent,strLabel,stells,rr,aky_max):
     ax2.set_title("Near-Axis")
     im=plt.imshow(dataNA, interpolation='hermite', origin='lower', extent=plotExtent, cmap='jet')
     clb=plt.colorbar(im,fraction=0.046, pad=0.04)
-    if strLabel=='gamma':
-        plt.clim(0,1)
-    elif strLabel=='ky':
-        plt.clim(0,aky_max)
-    else:
-    	plt.clim(np.min([np.min(dataX),np.min(dataNA)]),np.max([np.max(np.where(np.isinf(dataX),-np.Inf,dataX)),np.max(np.where(np.isinf(dataNA),-np.Inf,dataNA))])) 
+    #if strLabel=='gamma':
+    #    plt.clim(0,1)
+    #elif strLabel=='ky':
+    #    plt.clim(0,aky_max)
+    #else:
+    plt.clim(np.min([np.min(dataX),np.min(dataNA)]),np.max([np.max(np.where(np.isinf(dataX),-np.Inf,dataX)),np.max(np.where(np.isinf(dataNA),-np.Inf,dataNA))])) 
     plt.xlabel(r'$a/L_n$')
     plt.ylabel(r'$a/L_T$')
 

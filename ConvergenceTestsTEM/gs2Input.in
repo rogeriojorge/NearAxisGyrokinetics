@@ -14,7 +14,7 @@
 !  
 !==============================
 &kt_grids_single_parameters
- aky = 3.0 ! The actual value of ky rho
+ aky = 1.0 ! The actual value of ky rho
  akx = 0.0 
 /
 
@@ -134,8 +134,8 @@
  mass = 1.0 ! Mass
  dens = 1.0 ! Density	
  temp = 1.0 ! Temperature
- tprim = 6.9 ! -1/T (dT/drho)
- fprim = 2.2 ! -1/n (dn/drho)
+ tprim = 5.0 ! -1/T (dT/drho)
+ fprim = 2.0 ! -1/n (dn/drho)
  uprim = 0.0 ! ?
  vnewk = 0.01 ! collisionality parameter
  type = "ion" ! Type of species, e.g. 'ion', 'electron', 'beam'
@@ -149,8 +149,8 @@
  mass = 0.000544 ! Mass
  dens = 1.0 ! Density 
  temp = 1.0 ! Temperature
- tprim = 6.9 ! -1/T (dT/drho)
- fprim = 2.2 ! -1/n (dn/drho)
+ tprim = 5.0 ! -1/T (dT/drho)
+ fprim = 2.0 ! -1/n (dn/drho)
  uprim = 0.0 ! ?
  vnewk = 0.01 ! collisionality parameter
  type = "electron" ! Type of species, e.g. 'ion', 'electron', 'beam'
