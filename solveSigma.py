@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 from scipy import optimize
 from scipy.integrate import quad, cumtrapz
 from statistics import median
+from scipy.optimize import fsolve
+from matplotlib import pyplot as plt
 
 start_time = time.time()
 
@@ -21,9 +23,9 @@ mu0 = 4*pi*10**(-7)
 Nphi=250 # resolution for the sigma function
 
 nperiod  = 1
-drhodpsi = 1
-rmaj     = 1
-kxfac    = 1
+drhodpsi = 1.0
+rmaj     = 1.0
+kxfac    = 1.0
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -51,8 +53,10 @@ phiEDGE = abs(phiVMEC[-1])/(2*pi)
 # obtain near-axis configuration
 def chop(expr, *, max=0.3):
     return [i if i > max else 0 for i in expr]
-stel = Qsc(rc=chop(raxis,max=1e-9),zs=chop(-zaxis,max=1e-9), nfp=NFP, etabar=etabar, nphi=Nphi)
+stel = Qsc(rc=raxis,zs=-zaxis, nfp=NFP, etabar=etabar, nphi=Nphi)
 iota = abs(stel.iota)
+if stell=='Drevlak' or stell=='NZ1988':
+	iota=-iota
 sigmaSol = stel.sigma
 Laxis = stel.axis_length
 sprime = stel.d_l_d_phi
@@ -132,6 +136,28 @@ def cvdrift0New(theta): return gbdrift0New(theta)
 lambdamin=((2*phiEDGE)/((Aminor**2)*B0))/(1+abs(rVMEC*etabar))
 lambdamax=((2*phiEDGE)/((Aminor**2)*B0))/(1-abs(rVMEC*etabar))
 lambdavec=np.linspace(lambdamin,lambdamax,nlambda)
+#GX functions only for alpha=0
+#phiM=max(tgrid)
+#def tgridGX(theta):   return  pi*(theta-rVMEC*etabar*np.sin(theta))/((iota-nNormal)*phiM-rVMEC*etabar*np.sin((iota-nNormal)*phiM))
+#gradparGX=(2*pi*pi/Laxis)/(phiM-rVMEC*etabar*np.sin((iota-nNormal)*phiM)/(iota-nNormal))
+phiMax=max(tgrid)
+phiMin=min(tgrid)
+pMax=(iota-nNormal)*phiMax
+pMin=(iota-nNormal)*phiMin
+zMax=phiMax
+zMin=phiMin
+denMin=phiMin-rVMEC*etabar*np.sin(pMin)
+denMax=phiMax-rVMEC*etabar*np.sin(pMax)
+iotaN=iota-nNormal
+def tgridGX(theta,zz):
+	phi=Phi(theta)
+	return zz-(iotaN*(-(phiMin*zMax) + phi*(zMax - zMin) + phiMax*zMin) + etabar*rVMEC*((-zMax + zMin)*np.sin(iotaN*phi) - zMin*np.sin(iotaN*phiMax) + zMax*np.sin(iotaN*phiMin)))/(iotaN*(phiMax - phiMin) + etabar*rVMEC*(-np.sin(iotaN*phiMax) + np.sin(iotaN*phiMin)))
+gradparGX = Aminor*(2*iotaN*pi*(zMax - zMin))/(Laxis*(iotaN*(phiMax - phiMin) + etabar*rVMEC*(-np.sin(iotaN*phiMax) + np.sin(iotaN*phiMin))))
+def thetaGXgrid(zz):
+	sol = fsolve(tgridGX, 0.9*zz*iotaN, args=zz)
+	return sol[0]
+zGXgrid=np.linspace(zMin, zMax, nz)
+paramThetaGX = [thetaGXgrid(zz) for zz in zGXgrid]
 
 #Output to GS2 grid (bottleneck, thing that takes longer to do, needs to be more pythy)
 open(gs2gridNA, 'w').close()
@@ -162,4 +188,23 @@ for zz in paramTheta:
 f.write("\naplot Rprime tgrid")
 for zz in paramTheta:
 	f.write("\n0.0 0.0 "+str(zz/(iota-nNormal)))
+f.close()
+
+#Output to GX grid (bottleneck, thing that takes longer to do, needs to be more pythy)
+open(gxgridNA, 'w').close()
+f = open(gxgridNA, "w")
+f.write("ntgrid nperiod ntheta drhodpsi rmaj shat kxfac q scale")
+f.write("\n"+str(ntgrid)+" "+str(nperiod)+" "+str(nz-1)+" "+str(drhodpsi)+" "+str(rmaj)+" "+str(shat)+" "+str(kxfac)+" "+str(1/iota)+" 1.0")
+f.write("\ngbdrift gradpar grho tgrid")
+for count,zz in enumerate(paramThetaGX):
+	f.write("\n"+str(gbdriftNew(zz))+" "+str(gradparGX)+" 1.0 "+str(zGXgrid[count]))
+f.write("\ncvdrift gds2 bmag tgrid")
+for count,zz in enumerate(paramThetaGX):
+	f.write("\n"+str(cvdriftNew(zz))+" "+str(gds2New(zz))+" "+str(bmagNew(zz))+" "+str(zGXgrid[count]))
+f.write("\ngds21 gds22 tgrid")
+for count,zz in enumerate(paramThetaGX):
+	f.write("\n"+str(gds21New(zz))+" "+str(gds22New(zz))+" "+str(zGXgrid[count]))
+f.write("\ncvdrift0 gbdrift0 tgrid")
+for count,zz in enumerate(paramThetaGX):
+	f.write("\n"+str(cvdrift0New(zz))+" "+str(gbdrift0New(zz))+" "+str(zGXgrid[count]))
 f.close()

@@ -312,8 +312,8 @@ rplotBcrossGradBdotGradPsiOB3=Show[
 legFont[tit_] = Style[tit, 17, FontFamily -> "Latin Modern Math"];
 paperLeg = LineLegend[
   {Black,Directive[ColorData[97, "ColorList"][[1]], Dashed], Directive[ColorData[97, "ColorList"][[2]], Dashed],
-  Directive[ColorData[97, "ColorList"][[3]], Dashed], Directive[ColorData[97, "ColorList"][[4]], Dashed], ColorData[97, "ColorList"][[5]],
-  ColorData[97, "ColorList"][[6]],White,
+  Directive[ColorData[97, "ColorList"][[3]], Dashed], Directive[ColorData[97, "ColorList"][[4]], Dashed], Directive[ColorData[97, "ColorList"][[5]], Dashed],
+  Directive[ColorData[97, "ColorList"][[6]], Dashed],White,
   ColorData[97, "ColorList"][[1]], ColorData[97, "ColorList"][[2]], ColorData[97, "ColorList"][[3]],
   ColorData[97, "ColorList"][[4]], ColorData[97, "ColorList"][[5]],
   ColorData[97, "ColorList"][[6]](*, Directive[Magenta, DotDashed]*)}

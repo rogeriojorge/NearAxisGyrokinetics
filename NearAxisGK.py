@@ -17,10 +17,15 @@ etab        =[1.549]
 Nrotations  =[4]
 vmecFiles   =['LandremanSengupta2019_section5.4']
 
-#stellDesigns=['WISTELL-A']
-#etab        =[0.791]
-#Nrotations  =[4]
-#vmecFiles   =['wistella_midscale']
+#stellDesigns=['Drevlak']
+#etab        =[0.0899]
+#Nrotations  =[-5]
+#vmecFiles   =['Drevlak_qh_8_7']
+
+# stellDesigns=['NZ1988']
+# etab        =[0.155]
+# Nrotations  =[-6]
+# vmecFiles   =['NuhrenbergZille_1988_QHS']
 
 equilibriaFolder='equilibria/'
 gs2gridsFolder='gs2grids/'
