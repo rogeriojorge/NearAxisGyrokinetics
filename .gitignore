@@ -1,5 +1,6 @@
 # Manually added
 # equilibria/*
+.DS_Store
 ConvergenceTests/*
 toPaper
 ConvergenceTestsTEM/*
