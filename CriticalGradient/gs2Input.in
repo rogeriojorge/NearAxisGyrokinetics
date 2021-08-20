@@ -25,6 +25,7 @@
  aky_min = 0.0
  aky_max = 2.0
  naky = 10
+ kyspacing_option='exponential'
 /
 
 !==============================
@@ -64,6 +65,7 @@
 &le_grids_knobs
  ngauss = 3
  negrid = 12
+! radau_gauss_grid = .false.
 /
 
 !==============================
@@ -132,7 +134,7 @@
 !EVOLVED SPECIES  
 !==============================
 &species_knobs
- nspec = 2 ! Number of kinetic species evolved.
+ nspec = 1 ! Number of kinetic species evolved.
 /
 
 !==============================
@@ -151,33 +153,10 @@
 /
 
 !==============================
-!SPECIES PARAMETERS 2 
-!==============================
-&species_parameters_2
- z = -1.0 ! Charge
- mass = 0.000544 ! Mass
- dens = 1.0 ! Density 
- temp = 1.0 ! Temperature
- tprim = 6.9
- fprim = 2.2
- uprim = 0.0 ! ?
- vnewk = 0.01 ! collisionality parameter
- type = "electron" ! Type of species, e.g. 'ion', 'electron', 'beam'
-/
-
-!==============================
 ! 1 
 !==============================
 &dist_fn_species_knobs_1
- fexpr = 0.45 ! Temporal implicitness parameter. Recommended value: 0.48
- bakdif = 0.05 ! Spatial implicitness parameter. Recommended value: 0.05
-/
-
-!==============================
-! 2 
-!==============================
-&dist_fn_species_knobs_2
- fexpr = 0.45 ! Temporal implicitness parameter. Recommended value: 0.48
+ fexpr = 0.48 ! Temporal implicitness parameter. Recommended value: 0.48
  bakdif = 0.05 ! Spatial implicitness parameter. Recommended value: 0.05
 /
 

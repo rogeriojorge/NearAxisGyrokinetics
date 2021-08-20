@@ -11,6 +11,7 @@ import subprocess
 import matplotlib.cm as cm
 from matplotlib.font_manager import FontProperties
 import pickle
+from adjustText import adjust_text
 
 plotfontSize=20;figSize1=7.5;figSize2=4.0;legendfontSize=14;annotatefontSize=7
 matplotlib.rc('font', size=plotfontSize);matplotlib.rc('axes', titlesize=plotfontSize)
@@ -18,7 +19,7 @@ matplotlib.rc('text', usetex=True);matplotlib.rcParams['text.latex.preamble']=r"
 
 
 ###### RUN GS2 and diagnostics
-def runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript):
+def runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript,figEigenPlot,figGammaPlot):
 	# Create folders
 	if not path.exists(runsPath+stells):
 		os.mkdir(runsPath+stells)
@@ -55,6 +56,7 @@ def runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,n
 	if not path.exists(GSpath+gs2gridNA):
 		print(' Running Near-Axis grid')
 		output = subprocess.call(bashCommand.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	#print(bashCommand)
 	######################################
 	## Run GS2 to check for convergence ##
 	######################################
@@ -92,11 +94,12 @@ def runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,n
 	removeGS2(os.getcwd())
 	# Plot eigenfunctions
 	if figPlot==1:
-		if not path.exists(runName[:-3]+".out.nc_eigenphi.pdf"):
-			print(' Plotting eigenfunctions')
-			eigenPlot(runName[:-3]+".out.nc")
-		if not path.exists(runNameNA[:-3]+".out.nc_eigenphi.pdf"):
-			eigenPlot(runNameNA[:-3]+".out.nc")
+		if figEigenPlot==1:
+			if not path.exists(runName[:-3]+".out.nc_eigenphi.pdf"):
+				print(' Plotting eigenfunctions')
+				eigenPlot(runName[:-3]+".out.nc")
+			if not path.exists(runNameNA[:-3]+".out.nc_eigenphi.pdf"):
+				eigenPlot(runNameNA[:-3]+".out.nc")
 		# Compare Near-Axis and VMEC's geometric coefficients
 		if not path.exists('../'+stells+"_geom.pdf"):
 			print(' Plotting geometric coefficients')
@@ -106,7 +109,7 @@ def runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,n
 		os.chdir(currentPath)
 		############################
 		print(' Computing growth rate and frequency')
-		return getgamma(GSpath+'gs2/'+runName[:-3]+".out.nc"), getgamma(GSpath+'gs2/'+runNameNA[:-3]+".out.nc")
+		return getgamma(GSpath+'gs2/'+runName[:-3]+".out.nc",figPlot), getgamma(GSpath+'gs2/'+runNameNA[:-3]+".out.nc",figGammaPlot)
 	else:
 		os.chdir(currentPath)
 		return [0,0]
@@ -150,7 +153,7 @@ def removeGS2(Path):
     return 0
 
 ###### Function to obtain growth rate and plot phi2
-def getgamma(stellFile):
+def getgamma(stellFile,figGammaPlot):
 	fractionToConsider=0.5
 	f = netcdf.netcdf_file(stellFile,'r',mmap=False)
 	phi2 = np.log(f.variables['phi2'][()])
@@ -165,17 +168,18 @@ def getgamma(stellFile):
 	gamma  = np.mean(f.variables['omega'][()][startIndex:,0,0,1])
 	omega  = np.mean(f.variables['omega'][()][startIndex:,0,0,0])
     #fitRes = np.poly1d(coeffs)
-	if not path.exists(stellFile+'_phi2.pdf'):
-		plt.figure(figsize=(figSize1,figSize2))
-		##############
-		plt.plot(t, phi2,'.', label=r'data - $\gamma_{GS2} = $'+str(gamma))
-		plt.plot(t, poly(t),'-', label=r'fit - $\gamma = $'+str(GrowthRate))
-		##############
-		plt.legend(loc=0,fontsize=legendfontSize)
-		plt.xlabel(r'$t$');plt.ylabel(r'$\ln |\hat \phi|^2$')
-		plt.subplots_adjust(left=0.16, bottom=0.19, right=0.98, top=0.97)
-		plt.savefig(stellFile+'_phi2.pdf', format='pdf')
-		plt.close()
+	if figGammaPlot==1:
+		if not path.exists(stellFile+'_phi2.pdf'):
+			plt.figure(figsize=(figSize1,figSize2))
+			##############
+			plt.plot(t, phi2,'.', label=r'data - $\gamma_{GS2} = $'+str(gamma))
+			plt.plot(t, poly(t),'-', label=r'fit - $\gamma = $'+str(GrowthRate))
+			##############
+			plt.legend(loc=0,fontsize=legendfontSize)
+			plt.xlabel(r'$t$');plt.ylabel(r'$\ln |\hat \phi|^2$')
+			plt.subplots_adjust(left=0.16, bottom=0.19, right=0.98, top=0.97)
+			plt.savefig(stellFile+'_phi2.pdf', format='pdf')
+			plt.close()
 	return (GrowthRate,abs(omega))
 
 ###### Function to plot eigenfunctions
@@ -193,7 +197,7 @@ def eigenPlot(stellFile):
     plt.plot(x, phiR, label=r'Re($\hat \phi/\hat \phi_0$)')
     plt.plot(x, phiI, label=r'Im($\hat \phi/\hat \phi_0$)')
     ##############
-    plt.xlabel(r'$\theta$');plt.ylabel(r'$\hat \phi$')
+    plt.xlabel(r'$z$');plt.ylabel(r'$\hat \phi/\hat \phi_0$')
     plt.legend(loc="upper right")
     plt.subplots_adjust(left=0.16, bottom=0.19, right=0.98, top=0.93)
     plt.savefig(stellFile+'_eigenphi.pdf', format='pdf')
@@ -211,27 +215,27 @@ def geomPlot(stells,stellFileX,stellFileNA):
     plt.subplot(nrows, ncols, 1)
     plt.scatter(theta, fX.variables['gradpar'][()] , color='b', label='X', s=0.1)
     plt.scatter(theta, fNA.variables['gradpar'][()], color='r', label='NA', s=0.1)
-    plt.xlabel(r'$\theta$');plt.ylabel(r'gradpar')
+    plt.xlabel(r'$z$');plt.ylabel(r'gradpar')
     ##
     plt.subplot(nrows, ncols, 2);
     plt.scatter(theta, fX.variables['bmag'][()] , color='b', label='X', s=0.1)
     plt.scatter(theta, fNA.variables['bmag'][()], color='r', label='NA', s=0.1)
-    plt.xlabel(r'$\theta$');plt.ylabel(r'bmag')
+    plt.xlabel(r'$z$');plt.ylabel(r'bmag')
     ##
     plt.subplot(nrows, ncols, 3);
     plt.scatter(theta, fX.variables['gds2'][()] , color='b', label='X', s=0.1)
     plt.scatter(theta, fNA.variables['gds2'][()], color='r', label='NA', s=0.1)
-    plt.xlabel(r'$\theta$');plt.ylabel(r'gds2')
+    plt.xlabel(r'$z$');plt.ylabel(r'gds2')
     ##
     plt.subplot(nrows, ncols, 4);
     plt.scatter(theta, fX.variables['gds21'][()] , color='b', label='X', s=0.1)
     plt.scatter(theta, fNA.variables['gds21'][()], color='r', label='NA', s=0.1)
-    plt.xlabel(r'$\theta$');plt.ylabel(r'gds21')
+    plt.xlabel(r'$z$');plt.ylabel(r'gds21')
     ##
     plt.subplot(nrows, ncols, 5);
     plt.scatter(theta, fX.variables['gds22'][()] , color='b', label='X', s=0.1)
     plt.scatter(theta, fNA.variables['gds22'][()], color='r', label='NA', s=0.1)
-    plt.xlabel(r'$\theta$');plt.ylabel(r'gds22')
+    plt.xlabel(r'$z$');plt.ylabel(r'gds22')
     ##
     plt.subplot(nrows, ncols, 6);
     plt.scatter(list(range(1, 1+len(fX.variables['lambda'][()]))),fX.variables['lambda'][()] , color='b', label='X', s=0.2)
@@ -241,22 +245,22 @@ def geomPlot(stells,stellFileX,stellFileNA):
     plt.subplot(nrows, ncols, 7);
     plt.scatter(theta, fX.variables['gbdrift'][()] , color='b', label='X', s=0.1)
     plt.scatter(theta, fNA.variables['gbdrift'][()], color='r', label='NA', s=0.1)
-    plt.xlabel(r'$\theta$');plt.ylabel(r'gbdrift')
+    plt.xlabel(r'$z$');plt.ylabel(r'gbdrift')
     ##
     plt.subplot(nrows, ncols, 8);
     plt.scatter(theta, fX.variables['gbdrift0'][()] , color='b', label='X', s=0.1)
     plt.scatter(theta, fNA.variables['gbdrift0'][()], color='r', label='NA', s=0.1)
-    plt.xlabel(r'$\theta$');plt.ylabel(r'gbdrift0')
+    plt.xlabel(r'$z$');plt.ylabel(r'gbdrift0')
     ##
     plt.subplot(nrows, ncols, 9);
     plt.scatter(theta, fX.variables['cvdrift'][()] , color='b', label='X', s=0.1)
     plt.scatter(theta, fNA.variables['cvdrift'][()], color='r', label='NA', s=0.1)
-    plt.xlabel(r'$\theta$');plt.ylabel(r'cvdrift')
+    plt.xlabel(r'$z$');plt.ylabel(r'cvdrift')
     ##
     plt.subplot(nrows, ncols, 10);
     l1=plt.scatter(theta, fX.variables['cvdrift0'][()] , color='b', label='X', s=0.1)
     l2=plt.scatter(theta, fNA.variables['cvdrift0'][()], color='r', label='NA', s=0.1)
-    plt.xlabel(r'$\theta$');plt.ylabel(r'cvdrift0')
+    plt.xlabel(r'$z$');plt.ylabel(r'cvdrift0')
     ##
     plt.subplots_adjust(left=0.08, bottom=0.08, right=0.98, top=0.97, wspace=0.27, hspace=0.3)
     fig.legend([l1,l2], ['X', 'NA'], loc = 'lower center', ncol=2)
@@ -326,24 +330,39 @@ def finalGammaPlot(gammaNA,gammaX,strLabel,stellsToRun,stellDesigns,rr):
 def allGammaPlot(gammaNA,gammaX,strLabel,stellsToRun,stellDesigns,rr):
 	with open(str(rr)+strLabel+'.pickle','rb') as fid:
 		ax=pickle.load(fid)
-		annotatefontSize=10
-	for count, i in enumerate(stellsToRun):
-		ax.annotate(stellDesigns[i], (1.01*gammaNA[count],1.01*gammaX[count]), fontsize=annotatefontSize)
+	text=[]
+	texts = []
+	for i in stellsToRun:
+		text.append(stellDesigns[i])
+	for x, y, s in zip(gammaNA, gammaX, text):
+		texts.append(plt.text(x, y, s, size=10))
+
+#	plt.savefig('all'+strLabel+'Stells_r'+str(rr)+'.pdf', format='pdf')
+#	plt.close()
+#	with open(str(rr)+strLabel+'.pickle','rb') as fid:
+#		ax=pickle.load(fid)
+#		annotatefontSize=6
+#	for count, i in enumerate(stellsToRun):
+#		ax.annotate(stellDesigns[i], (0.96*gammaNA[count],0.96*gammaX[count]), fontsize=annotatefontSize)
+
 	ax.plot([0, 1], [0, 1], color='r', ls='--')
 	if strLabel=='gamma':
-		plt.xlabel(r'Near-Axis $\gamma$');plt.ylabel(r'VMEC $\gamma$')
-		plt.ylim(-0.005+0*0.95*min(min(gammaNA),min(gammaX)),1.1*max(max(gammaNA),max(gammaX)))
-		plt.xlim(-0.005+0*0.95*min(min(gammaNA),min(gammaX)),1.1*max(max(gammaNA),max(gammaX)))
+		plt.xlabel(r'Near-Axis $\gamma$', fontsize=14);plt.ylabel(r'VMEC $\gamma$', fontsize=14)
+		plt.ylim(-0.005+0*0.95*min(min(gammaNA),min(gammaX)),0.25+0*1.2*max(max(gammaNA),max(gammaX)))
+		plt.xlim(-0.005+0*0.95*min(min(gammaNA),min(gammaX)),0.25+0*1.2*max(max(gammaNA),max(gammaX)))
 	elif strLabel=='omega':
 		plt.xlabel(r'Near-Axis $\omega$');plt.ylabel(r'VMEC $\omega$')
-		plt.ylim(-0.005,1.1*max(max(gammaNA),max(gammaX)))
-		plt.xlim(-0.005,1.1*max(max(gammaNA),max(gammaX)))
+		plt.ylim(-0.005,0.35+0*1.1*max(max(gammaNA),max(gammaX)))
+		plt.xlim(-0.005,0.35+0*1.1*max(max(gammaNA),max(gammaX)))
 	plt.gca().set_aspect('equal', adjustable='box')
 	fontP = FontProperties()
 	fontP.set_size('xx-small')
-	ax.legend(bbox_to_anchor=(1.01, 1), loc='upper left', prop=fontP)
+	ax.legend(bbox_to_anchor=(1.01, 1), loc='upper left', prop={'size': 10})
 	#fig.suptitle(stells, fontsize=titleFontSize)
 	plt.title(r's='+str(rr), fontsize=16)
-	plt.subplots_adjust(left=-0.07, bottom=0.14, right=1.0, top=0.94)
+	fig = matplotlib.pyplot.gcf()
+	fig.set_size_inches(5.6, 4.1)
+	plt.subplots_adjust(left=-0.09, bottom=0.14, right=0.93, top=0.94)
+	adjust_text(texts)
 	plt.savefig('all'+strLabel+'Stells_r'+str(rr)+'.pdf', format='pdf')
 	plt.close()

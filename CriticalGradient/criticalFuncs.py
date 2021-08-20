@@ -13,7 +13,7 @@ from pylab import text
 
 plotfontSize=20;figSize1=7.5;figSize2=4.0;legendfontSize=14;annotatefontSize=8
 matplotlib.rc('font', size=plotfontSize);matplotlib.rc('axes', titlesize=plotfontSize)
-matplotlib.rc('text', usetex=True);matplotlib.rcParams['text.latex.preamble']=r"\usepackage{amsmath}"
+matplotlib.rc('text', usetex=False);matplotlib.rcParams['text.latex.preamble']=r"\usepackage{amsmath}"
 
 ## Function to replace text in files
 def replace(file_path, pattern, subst):
@@ -86,10 +86,12 @@ def runGS2func(plotFig,currentPath,GSpath,runName,runNameNA,gs2grid,gxgrid,gs2gr
     removeGS2(os.getcwd())
     # Plot eigenfunctions
     if not path.exists(runName[:-3]+".out.nc_eigenphi.pdf") and plotFig==1:
-        print(' Plotting eigenfunctions')
-        eigenPlot(runName[:-3]+".out.nc")
+        print("Not eigenplotting")
+        #print(' Plotting eigenfunctions')
+        #eigenPlot(runName[:-3]+".out.nc")
     if not path.exists(runNameNA[:-3]+".out.nc_eigenphi.pdf") and plotFig==1:
-        eigenPlot(runNameNA[:-3]+".out.nc")
+        print("Not eigenplotting")
+        #eigenPlot(runNameNA[:-3]+".out.nc")
     # Compare Near-Axis and VMEC's geometric coefficients
     if not path.exists('../'+stells+"_geom.pdf") and plotFig==1:
         print(' Plotting geometric coefficients')
@@ -104,7 +106,7 @@ def eigenPlot(stellFile):
     y  = f.variables['phi'][()]
     x  = f.variables['theta'][()]
     kyvec = f.variables['ky'][()]
-    plt.figure(figsize=(3*figSize1,3*figSize2))
+    plt.figure(figsize=(8*figSize1,10*figSize2))
     #plt.subplots_adjust(hspace=1.0)
     for i,v in enumerate(range(len(kyvec))):
         v = v+1
@@ -120,7 +122,7 @@ def eigenPlot(stellFile):
         #plt.title(r'$\phi$')
         if i==1:
             fontP = FontProperties()
-            fontP.set_size('xx-small')
+            #fontP.set_size('xx-small')
             legend=ax1.legend(bbox_to_anchor=(1.01, 1), loc='upper left', prop=fontP)
             #ax1.legend(loc="upper right",fontsize=legendfontSize)
         text(0.9, 0.7,"ky = "+str('%.2f' % kyvec[i]), ha='center', va='center', transform=ax1.transAxes,fontsize=legendfontSize)
@@ -193,17 +195,25 @@ def gammabyky(plotFig,currentPath,GSpath,runName,runNameNA,fractionToConsider):
         plt.plot(kyNA,growthRateX,'.-',label=r'VMEC')
         plt.xlabel(r'$k_y$')
         plt.ylabel(r'$\gamma$')
-        plt.legend(frameon=False,prop=dict(size='x-small'),loc=0)
+        plt.xscale('log')
+        #plt.rc('font', size=8)
+        #plt.rc('axes', labelsize=8)
+        #plt.rc('xtick', labelsize=8)
+        plt.legend(frameon=False,prop=dict(size='xx-small'),loc=0)
 
         plt.subplot(numRows, numCols, 2)
         plt.plot(kyX,realFrequencyNA,'.-',label=r'Near-Axis')
         plt.plot(kyNA,realFrequencyX,'.-',label=r'VMEC')
         plt.xlabel(r'$k_y$')
         plt.ylabel(r'$\omega$')
-        plt.legend(frameon=False,prop=dict(size='x-small'),loc=0)
+        plt.xscale('log')
+        plt.rc('font', size=8)
+        plt.rc('axes', labelsize=8)
+        plt.rc('xtick', labelsize=8)
+        plt.legend(frameon=False,prop=dict(size=12),loc=0)
 
         plt.tight_layout()
-        plt.subplots_adjust(left=0.14, bottom=0.15, right=0.98, top=0.96)
+        #plt.subplots_adjust(left=0.14, bottom=0.15, right=0.98, top=0.96)
         plt.savefig(runName[:-3]+"_GammaOmegaKy.pdf", format='pdf')
         plt.close()
         
@@ -290,15 +300,15 @@ def finalPlot(dataX,dataNA,plotExtent,strLabel,stells,rr,aky_max):
     #    plt.clim(0,aky_max)
     #else:
     plt.clim(np.min([np.min(dataX),np.min(dataNA)]),np.max([np.max(np.where(np.isinf(dataX),-np.Inf,dataX)),np.max(np.where(np.isinf(dataNA),-np.Inf,dataNA))])) 
-    plt.xlabel(r'$a/L_n$')
-    plt.ylabel(r'$a/L_T$')
+    plt.xlabel(r'$a/L_n$', usetex=True)
+    plt.ylabel(r'$a/L_T$', usetex=True)
 
     if strLabel=='gamma':
-        clb.ax.set_title(r'$\gamma$')
+        clb.ax.set_title(r'$\gamma$', usetex=True)
     elif strLabel=='omega':
-        clb.ax.set_title(r'$\omega$')
+        clb.ax.set_title(r'$\omega$', usetex=True)
     elif strLabel=='ky':
-        clb.ax.set_title(r'$k_y$')
+        clb.ax.set_title(r'$k_y$', usetex=True)
 
     ax2=plt.subplot(numRows, numCols, 2)
     ax2.set_title("Near-Axis")
@@ -316,11 +326,11 @@ def finalPlot(dataX,dataNA,plotExtent,strLabel,stells,rr,aky_max):
     plt.tight_layout()
 
     if strLabel=='gamma':
-        clb.ax.set_title(r'$\gamma$')
+        clb.ax.set_title(r'$\gamma$', usetex=True)
     elif strLabel=='omega':
-        clb.ax.set_title(r'$\omega$')
+        clb.ax.set_title(r'$\omega$', usetex=True)
     elif strLabel=='ky':
-        clb.ax.set_title(r'$k_y$')
+        clb.ax.set_title(r'$k_y$', usetex=True)
 
     matplotlib.rc('font', size=16)
     plt.savefig('Figures_r'+str(rr)+'/'+stells+'_max'+strLabel+'.pdf', format='pdf', bbox_inches='tight')

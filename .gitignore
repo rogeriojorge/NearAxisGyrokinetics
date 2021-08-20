@@ -1,5 +1,9 @@
 # Manually added
-equilibria/*
+# equilibria/*
+ConvergenceTests/*
+toPaper
+ConvergenceTestsTEM/*
+CriticalGradient/*
 test_vmec_to_gs2_geometry_interface
 Literature
 data/*

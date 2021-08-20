@@ -4,26 +4,26 @@
 
 vmecFiles    = ['wistella_midscale' ,'NuhrenbergZille_1988_QHS','HSX_QHS_vacuum_ns201','n4qh.b4.a79a','Drevlak_qh_8_7','li383_1.4m_ns201','n3are_R7.75B5.7_hires','GarabedianQAS2_noCurrentOnAxis_ns201','estell_24_scaled','cfqs_freeBoundary_vacuum_hiRes','st_a34_i32v22_beta_35_scaledAUG_hires','LandremanSengupta2019_section5.4','ITER']
 stellDesigns = ['WISTELL-A'         ,'NZ1988'                  ,'HSX'                 ,'KuQHS48'     ,'Drevlak'       ,'NCSX'            ,'ARIES-CS'             ,'QAS2'                                ,'ESTELL'          ,'CFQS'                          ,'Henneberg'                            ,'NAQS'                            ,'ITER']
-etabar       = [0.791               ,0.157                     ,1.28                  ,0.147         ,0.0899          ,0.408             ,0.0740                 ,0.347                                 ,0.570             ,0.586                           ,0.302                                  ,1.549                             ,0.115]
-B0           = [2.54                ,0.205                     ,1.00                  ,1.20          ,3.97            ,1.55              ,5.69                   ,1.79                                  ,1.00              ,0.933                           ,2.41                                   ,1.001                             ,5.358]
-nzgridvec    = [250                 ,230                       ,300                   ,240           ,200             ,250               ,220                    ,250                                   ,200               ,250                             ,250                                    ,180                               ,150]
-nlambdavec   = [36                  ,33                        ,35                    ,28            ,25              ,30                ,30                     ,30                                    ,25                ,30                              ,30                                     ,26                                ,20]
-NFPtoInclude = [5                   ,4                         ,6                     ,8             ,5               ,6                 ,8                      ,9                                     ,3                 ,3                               ,5                                      ,5                                 ,3]
-negridvec    = [8                   ,8                         ,8                     ,8             ,8               ,8                 ,8                      ,8                                     ,8                 ,8                               ,8                                      ,7                                 ,8]
+etabar       = [0.791               ,0.1567                    ,1.28                  ,0.147         ,0.08914         ,0.408             ,0.0740                 ,0.347                                 ,0.570             ,0.586                           ,0.302                                  ,1.549                             ,0.115]
+B0           = [2.54                ,0.2052                    ,1.00                  ,1.20          ,3.9736          ,1.55              ,5.69                   ,1.79                                  ,1.00              ,0.933                           ,2.41                                   ,1.001                             ,5.358]
+nzgridvec    = [150                 ,162                       ,150                   ,150           ,182             ,150               ,150                    ,150                                   ,150               ,150                             ,150                                    ,100                               ,150]
+nlambdavec   = [34                  ,26                        ,24                    ,24            ,28              ,24                ,24                     ,30                                    ,24                ,28                              ,32                                     ,24                                ,20]
+NFPtoInclude = [3                   ,3                         ,4                     ,6             ,3               ,4                 ,6                      ,7                                     ,2                 ,2                               ,6                                      ,4                                 ,3]
+negridvec    = [10                  ,10                        ,10                    ,10            ,10              ,10                ,10                     ,10                                    ,10                ,10                              ,10                                     ,10                                ,8]
 deltaTvec    = [0.4                 ,0.4                       ,0.4                   ,0.4           ,0.4             ,0.4               ,0.4                    ,0.4                                   ,0.4               ,0.4                             ,0.4                                    ,0.4                               ,0.4]
-simTimevec   = [60                  ,60                        ,60                    ,60            ,60              ,60                ,60                     ,60                                    ,60                ,60                              ,60                                     ,40                                ,60]
-ngaussvec    = [2                   ,2                         ,2                     ,2             ,2               ,2                 ,2                      ,2                                     ,2                 ,2                               ,2                                      ,2                                 ,2]
-QAorQH       = ['QH'                ,'QH'                      ,'QH'                  ,'QH'          ,'QH'            ,'QA'              ,'QA'                   ,'QA'                                  ,'QA'              'QA'                             ,'QA'                                   ,'QH'                              ,'A']
+simTimevec   = [70                  ,80                        ,60                    ,60            ,120             ,60                ,140                    ,100                                   ,70                ,60                              ,60                                     ,60                                ,50]
+ngaussvec    = [3                   ,3                         ,3                     ,3             ,3               ,3                 ,3                      ,3                                     ,3                 ,3                               ,3                                      ,3                                 ,3]
+QAorQH       = ['QH'                ,'QH'                      ,'QH'                  ,'QH'          ,'QH'            ,'QA'              ,'QA'                   ,'QA'                                  ,'QA'              ,'QA'                            ,'QA'                                   ,'QH'                              ,'A']
 ## 11 stellarators + 1 tokamak
 
-tprimvec = [0,1,2,3,4,5,6] # -|grad(T)/T|
-fprimvec = [0,1,2,3,4,5,6] # |grad(T)/T|\|grad(n)/n|
+tprimvec = [0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6]#[0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6] # -|grad(T)/T|
+fprimvec = [0,0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6] # |grad(T)/T|\|grad(n)/n|
 aky_min  = 0.01 # minimum ky to consider
-aky_max  = 40.0 # maximum ky to consider
+aky_max  = 20 # maximum ky to consider
 naky     = 40 # number of ky points
 rr  = 0.01 # normalized flux psi/psi_a radial coordinate
-stellsToRun  = [11]#[0,1,2,3,4,5,6,7,8,9,10] # select the indices of stellarators from stellDesigns to analyze. Start at 0
-fractionToConsider = 0.7 # fraction of time fron the simulation period to consider
+stellsToRun  = [0,1,2,3,4,5,6,7,8,9,10,11] # select the indices of stellarators from stellDesigns to analyze. Start at 0
+fractionToConsider = 0.6 # fraction of time fron the simulation period to consider
 
 makeCleanVMEC2GS2 = 0 # 1 - make clean and then make VMEC2GS2, 0 - just make
 ncores = 8 # number of cpu cores to run GS2

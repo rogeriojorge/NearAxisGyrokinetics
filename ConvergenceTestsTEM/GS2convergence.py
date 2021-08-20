@@ -4,23 +4,25 @@
 
 vmecFiles    = ['wistella_midscale' ,'NuhrenbergZille_1988_QHS','HSX_QHS_vacuum_ns201','n4qh.b4.a79a','Drevlak_qh_8_7','li383_1.4m_ns201','n3are_R7.75B5.7_hires','GarabedianQAS2_noCurrentOnAxis_ns201','estell_24_scaled','cfqs_freeBoundary_vacuum_hiRes','st_a34_i32v22_beta_35_scaledAUG_hires','LandremanSengupta2019_section5.4','ITER']
 stellDesigns = ['WISTELL-A'         ,'NZ1988'                  ,'HSX'                 ,'KuQHS48'     ,'Drevlak'       ,'NCSX'            ,'ARIES-CS'             ,'QAS2'                                ,'ESTELL'          ,'CFQS'                          ,'Henneberg'                            ,'NAQS'                            ,'ITER']
-etabar       = [0.791               ,0.157                     ,1.28                  ,0.147         ,0.0899          ,0.408             ,0.0740                 ,0.347                                 ,0.570             ,0.586                           ,0.302                                  ,1.549                             ,0.115]
-B0           = [2.54                ,0.205                     ,1.00                  ,1.20          ,3.97            ,1.55              ,5.69                   ,1.79                                  ,1.00              ,0.933                           ,2.41                                   ,1.001                             ,5.358]
-nzgridvec    = [250                 ,230                       ,300                   ,240           ,200             ,250               ,220                    ,250                                   ,200               ,250                             ,250                                    ,220                               ,150]
-nlambdavec   = [36                  ,33                        ,35                    ,28            ,25              ,30                ,30                     ,30                                    ,25                ,30                              ,30                                     ,31                                ,20]
-NFPtoInclude = [5                   ,4                         ,6                     ,8             ,5               ,6                 ,8                      ,9                                     ,3                 ,3                               ,5                                      ,5                                 ,3]
-negridvec    = [8                   ,8                         ,8                     ,8             ,8               ,8                 ,8                      ,8                                     ,8                 ,8                               ,8                                      ,8                                 ,8]
+etabar       = [0.791               ,0.1567                    ,1.28                  ,0.147         ,0.08914         ,0.408             ,0.0740                 ,0.347                                 ,0.570             ,0.586                           ,0.302                                  ,1.549                             ,0.115]
+B0           = [2.54                ,0.2052                    ,1.00                  ,1.20          ,3.9736          ,1.55              ,5.69                   ,1.79                                  ,1.00              ,0.933                           ,2.41                                   ,1.001                             ,5.358]
+nzgridvec    = [180                 ,190                       ,180                   ,180           ,220             ,180               ,180                    ,240                                   ,160               ,180                             ,190                                    ,120                               ,150]
+nlambdavec   = [34                  ,32                        ,32                    ,28            ,34              ,32                ,32                     ,30                                    ,28                ,34                              ,36                                     ,28                                ,24]
+NFPtoInclude = [3                   ,3                         ,4                     ,6             ,3               ,4                 ,6                      ,7                                     ,2                 ,2                               ,6                                      ,4                                 ,3]
+negridvec    = [10                  ,10                        ,10                    ,10            ,10              ,10                ,10                     ,10                                    ,10                ,10                              ,10                                     ,10                                ,8]
 deltaTvec    = [0.4                 ,0.4                       ,0.4                   ,0.4           ,0.4             ,0.4               ,0.4                    ,0.4                                   ,0.4               ,0.4                             ,0.4                                    ,0.4                               ,0.4]
-simTimevec   = [60                  ,60                        ,60                    ,60            ,60              ,60                ,60                     ,60                                    ,60                ,60                              ,60                                     ,60                                ,60]
-ngaussvec    = [2                   ,2                         ,2                     ,2             ,2               ,2                 ,2                      ,2                                     ,2                 ,2                               ,2                                      ,2                                 ,2]
-QAorQH       = ['QH'                ,'QH'                      ,'QH'                  ,'QH'          ,'QH'            ,'QA'              ,'QA'                   ,'QA'                                  ,'QA'              'QA'                             ,'QA'                                   ,'QH'                              ,'A']
+simTimevec   = [70                  ,80                        ,70                    ,100           ,130             ,80                ,140                    ,140                                   ,90                ,80                              ,80                                     ,50                                ,50]
+ngaussvec    = [3                   ,3                         ,3                     ,3             ,3               ,3                 ,3                      ,3                                     ,3                 ,3                               ,3                                      ,3                                 ,3]
+QAorQHvec    = ['QH'                ,'QH'                      ,'QH'                  ,'QH'          ,'QH'            ,'QA'              ,'QA'                   ,'QA'                                  ,'QA'              ,'QA'                            ,'QA'                                   ,'QH'                              ,'A']
 ## 11 stellarators + 1 tokamak
 
 rrvec  = [0.01,0.05,0.1,0.3,0.5,0.8] # normalized flux psi/psi_a radial coordinate
-stellsToRun  = [11]#[0,1,2,3,4,5,6,7,8,9,10] # select the indices of stellarators from stellDesigns to analyze. Start at 0
+stellsToRun  = [0,1,2,3,4,5,6,7,8,9,10] # select the indices of stellarators from stellDesigns to analyze. Start at 0
 ncores = 8 # number of cpu cores to run GS2
 runGS2 = 1 # 0 - do not run GS2, 1 - run GS2
-figPlot = 1 # no plotting
+figPlot = 1 # 0 - do not do any plotting, 1 - do
+figEigenPlot = 1 # 0 - do not plot eigenfuntcions, 1 - do
+figGammaPlot = 1 # 0 - do not plot fit to obtain gamma, 1 - do
 makeCleanVMEC2GS2 = 0 # 1 - make clean and then make VMEC2GS2, 0 - just make
 
 vmecGS2interfaceFolder='/Users/rogeriojorge/Dropbox/PostDoc/NearAxisGyrokinetics/ConvergenceTestsTEM/VMEC_to_GS2'
@@ -31,6 +33,7 @@ sigmaScript='/Users/rogeriojorge/Dropbox/Postdoc/NearAxisGyrokinetics/solveSigma
 wolframScript = "wolframscript"
 
 import os
+import sys
 from os import path, fdopen, remove
 import subprocess
 from shutil import move, copymode, copyfile, rmtree
@@ -44,6 +47,7 @@ import matplotlib.cm as cm
 from matplotlib.font_manager import FontProperties
 import pickle
 from time import sleep
+from math import floor
 
 ## User-defined functions from convergenceFuncs.py
 from convergenceFuncs import runGS2func, replace, getgamma, eigenPlot, geomPlot, removeGS2, gammaPlot, finalGammaPlot, allGammaPlot
@@ -73,6 +77,8 @@ if not path.exists('omegaPlots'):
 #	rmtree('omegaPlots')
 	os.mkdir('omegaPlots')
 
+gammaXstore=[]
+
 legendTXT=['base case','double ngauss','half dt','double nstep','double negrid','double nzgrid','double nlambda','double nfp']
 for rr in rrvec:
 	print('Radius = '+str(rr))
@@ -101,21 +107,21 @@ for rr in rrvec:
 		equilibrium = equilibriaFolder+'wout_'+vmecFiles[i]+'.nc'
 		# Run GS2 and double resolution in each parameter
 		print(stells+' base case')
-		[gammaXbc, gammaNAbc] = runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript)
-		print(stells+' double ngauss')
-		[gammaXngauss, gammaNAngauss] = runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,2*ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript)
-		print(stells+' half dt')
-		[gammaXdt, gammaNAdt] = runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt/2,2*nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript)
-		print(stells+' double nstep')
-		[gammaXnstep, gammaNAnstep] = runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,2*nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript)
-		print(stells+' double negrid')
-		[gammaXnegrid, gammaNAnegrid] = runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,2*ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript)
-		print(stells+' double nzgrid')
-		[gammaXnzgrid, gammaNAnzgrid] = runGS2func(stells,rr,2*nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript)
-		print(stells+' double nlambda')
-		[gammaXnlambda, gammaNAnlambda] = runGS2func(stells,rr,nzgrid,2*nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript)
+		[gammaXbc, gammaNAbc] = runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript,figEigenPlot,figGammaPlot)
 		print(stells+' double nfp')
-		[gammaXnfp, gammaNAnfp] = runGS2func(stells,rr,2*nzgrid,nlambda,2*nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript)
+		[gammaXnfp, gammaNAnfp] = runGS2func(stells,rr,2*nzgrid,nlambda,2*nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript,figEigenPlot,figGammaPlot)
+		print(stells+' double nzgrid')
+		[gammaXnzgrid, gammaNAnzgrid] = runGS2func(stells,rr,floor(2*nzgrid),nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript,figEigenPlot,figGammaPlot)
+		print(stells+' double ngauss')
+		[gammaXngauss, gammaNAngauss] = runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,2*ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript,figEigenPlot,figGammaPlot)
+		print(stells+' half dt')
+		[gammaXdt, gammaNAdt] = runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt/2,2*nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript,figEigenPlot,figGammaPlot)
+		print(stells+' double nstep')
+		[gammaXnstep, gammaNAnstep] = runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,2*nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript,figEigenPlot,figGammaPlot)
+		print(stells+' double negrid')
+		[gammaXnegrid, gammaNAnegrid] = runGS2func(stells,rr,nzgrid,nlambda,nfp,equilibrium,runsPath,etab,b0,2*ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript,figEigenPlot,figGammaPlot)
+		print(stells+' double nlambda')
+		[gammaXnlambda, gammaNAnlambda] = runGS2func(stells,rr,nzgrid,2*nlambda,nfp,equilibrium,runsPath,etab,b0,ne,dt,nstep,ngauss,ncores,wolframScript,gs2Path,runGS2,currentPath,figPlot,sigmaScript,figEigenPlot,figGammaPlot)
 
 		if figPlot==1:
 			growthRateX  = [gammaXbc[0], gammaXngauss[0], gammaXdt[0], gammaXnstep[0], gammaXnegrid[0], gammaXnzgrid[0], gammaXnlambda[0], gammaXnfp[0]]
@@ -138,10 +144,11 @@ for rr in rrvec:
 				ax=pickle.load(fid)
 			colors = cm.rainbow(np.linspace(0, 1, len(legendTXT)))
 			for x, y, c, l in zip(growthRateNA, growthRateX, colors, legendTXT):
+				QAorQH='none' if QAorQHvec[i]=='QA' else c
 				if count==0:
-					plt.scatter(x, y, color=c, label=l)
+					plt.scatter(x, y, color=c, label=l,facecolors=QAorQH)
 				else:
-					plt.scatter(x, y, color=c)
+					plt.scatter(x, y, color=c,facecolors=QAorQH)
 			with open(str(rr)+'gamma.pickle','wb') as fid:
 				pickle.dump(ax, fid)
 			plt.close()
@@ -150,10 +157,11 @@ for rr in rrvec:
 				ax=pickle.load(fid)
 			colors = cm.rainbow(np.linspace(0, 1, len(legendTXT)))
 			for x, y, c, l in zip(frequencyNA, frequencyX, colors, legendTXT):
+				QAorQH='none' if QAorQHvec[i]=='QA' else c
 				if count==0:
-					plt.scatter(x, y, color=c, label=l)
+					plt.scatter(x, y, color=c, label=l,facecolors=QAorQH)
 				else:
-					plt.scatter(x, y, color=c)
+					plt.scatter(x, y, color=c,facecolors=QAorQH)
 			with open(str(rr)+'omega.pickle','wb') as fid:
 				pickle.dump(ax, fid)
 			plt.close()
@@ -174,3 +182,13 @@ for rr in rrvec:
 		for f in glob.glob('*.pdf'): remove(f)
 		for f in glob.glob('*.pickle'): remove(f)
 		fid.close
+		# Save data in arrays
+		gammaXstore  = np.asarray(gammaX)
+		gammaNAstore = np.asarray(gammaNA)
+		omegaXstore  = np.asarray(omegaX)
+		omegaNAstore = np.asarray(omegaNA)
+		# save to csv file
+		np.savetxt('arrays/gammaX' +'_r'+str(rr)+'.csv', gammaXstore,  delimiter=',')
+		np.savetxt('arrays/gammaNA'+'_r'+str(rr)+'.csv', gammaNAstore, delimiter=',')
+		np.savetxt('arrays/omegaX' +'_r'+str(rr)+'.csv', omegaXstore,  delimiter=',')
+		np.savetxt('arrays/omegaNA'+'_r'+str(rr)+'.csv', omegaNAstore, delimiter=',')
